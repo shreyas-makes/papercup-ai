@@ -6,6 +6,11 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
+    <!-- Work Sans font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- extra Tailwind components -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/flowbite.min.css" rel="stylesheet" />
 
@@ -14,15 +19,18 @@
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
 
-    <%= render "shared/script_tags" %>
+    <%= render "shared/script_tags" if defined?(render_script_tags) %>
   </head>
 
-  <body>
-    <main class="container mx-auto mt-14 px-6">
+  <body class="bg-background">
+    <%= render "shared/header" %>
+    
+    <main class="container mx-auto px-4 py-4">
+      <%= render "shared/flash" if defined?(render_flash) %>
       <%= render "shared/impersonator" %>
-      <%= render "shared/flash" %>
-      <%= render "shared/header" %>
       <%= yield %>
     </main>
+    
+    <%= render "shared/footer" %>
   </body>
 </html>

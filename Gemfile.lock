@@ -164,6 +164,10 @@ GEM
       warden (~> 1.2.3)
     diff-lcs (1.5.1)
     docile (1.4.1)
+    dotenv (3.1.7)
+    dotenv-rails (3.1.7)
+      dotenv (= 3.1.7)
+      railties (>= 6.1)
     drb (2.2.1)
     erubi (1.13.0)
     factory_bot (6.5.0)
@@ -517,6 +521,7 @@ DEPENDENCIES
   debug
   delayed!
   devise
+  dotenv-rails
   factory_bot_rails
   faker
   groupdate

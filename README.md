@@ -22,6 +22,43 @@ Papercup is a WebRTC-based communication platform built with Ruby on Rails, enab
 - **Payment Processing**: Money-Rails
 - **Deployment**: Hetzner Cloud, Hatchbox
 
+## Environment Setup
+
+### Prerequisites
+
+- Ruby 3.3.5
+- Rails 8.0.0
+- PostgreSQL
+- Redis (for Sidekiq)
+
+### Environment Variables
+
+Papercup uses environment variables for configuration. For local development:
+
+1. Copy the example environment file:
+   ```
+   cp .env.example .env
+   ```
+
+2. Edit the `.env` file with your configuration values.
+
+3. For production, ensure the following environment variables are set:
+   - `DATABASE_URL`
+   - `REDIS_URL`
+   - `RAILS_MASTER_KEY`
+
+### Credentials
+
+Sensitive credentials are stored in Rails encrypted credentials:
+
+- Development/test: `rails credentials:edit --environment development`
+- Production: `rails credentials:edit --environment production`
+
+Required credentials:
+- Twilio (for SIP gateway)
+- Stripe (for payments)
+- TURN server credentials (for WebRTC)
+
 ## Getting Started
 
 ### Prerequisites

@@ -1,0 +1,46 @@
+<% meta title: "Dialer", description: "Make international calls with Papercup" %>
+
+<div class="max-w-3xl mx-auto bg-secondary rounded-lg shadow-lg overflow-hidden">
+  <!-- Dialer header -->
+  <div class="bg-primary text-secondary py-4 px-6">
+    <h1 class="text-2xl font-semibold">Papercup Dialer</h1>
+    <p class="text-sm opacity-80">Make international calls from your browser</p>
+  </div>
+
+  <!-- Dialer input -->
+  <div class="p-6 border-b border-background">
+    <div class="relative">
+      <input type="tel" class="w-full py-3 px-4 border-2 border-background rounded-lg text-xl focus:ring-2 focus:ring-accent focus:border-accent" placeholder="+1 (234) 567-8910" data-controller="dialer" data-dialer-target="input">
+      <button class="absolute right-2 top-1/2 transform -translate-y-1/2 text-text-secondary hover:text-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Dialer keypad -->
+  <div class="grid grid-cols-3 gap-2 p-6">
+    <% %w[1 2 3 4 5 6 7 8 9 * 0 #].each do |key| %>
+      <button class="bg-background hover:bg-gray-200 text-primary text-2xl font-medium py-4 rounded-lg transition-colors" data-action="click->dialer#addKey" data-dialer-key="<%= key %>">
+        <%= key %>
+      </button>
+    <% end %>
+  </div>
+
+  <!-- Call button -->
+  <div class="p-6 bg-background">
+    <button class="w-full py-4 bg-success hover:bg-opacity-90 text-white rounded-lg flex items-center justify-center space-x-2 text-xl font-medium">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+      </svg>
+      <span>Call</span>
+    </button>
+  </div>
+</div>
+
+<div class="max-w-3xl mx-auto mt-8 p-6 bg-secondary rounded-lg shadow-lg">
+  <h2 class="text-xl font-semibold mb-4">Recent Calls</h2>
+  <p class="text-text-secondary">Your recent calls will appear here.</p>
+  <!-- This will be populated with actual call history later -->
+</div> 

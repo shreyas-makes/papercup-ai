@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   ActiveAdmin.routes(self)
 
-  root 'pages#home'
+  root 'dialer#index'
 
   devise_for :users, path: '', path_names: { sign_in: 'login', sign_up: 'signup' }, controllers: { registrations: 'registrations' }
   get 'logout', to: 'pages#logout', as: 'logout'
@@ -28,4 +28,13 @@ Rails.application.routes.draw do
     # insert sidekiq etc
     mount Split::Dashboard, at: 'admin/split'
   end
+
+  # Dialer and calling routes
+  resources :dialer, only: [:index]
+  resources :credits, only: [:index]
+  resources :call_history, only: [:index]
+
+  # Static pages
+  get 'privacy', to: 'pages#privacy'
+  get 'terms', to: 'pages#terms'
 end
