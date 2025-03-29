@@ -1,84 +1,121 @@
 # Papercup
-a Rails 8 template by [@ryanckulp](https://twitter.com/ryanckulp), created to ship SaaS apps quickly. 
 
-learn to build 3 projects with Papercup at [24 Hour MVP](https://founderhacker.com/24-hour-mvp), or check out the [premium documentation](https://gitpaywall.com/p/ryanckulp/speedrail-docs).
+Papercup is a WebRTC-based communication platform built with Ruby on Rails, enabling high-quality voice calls with advanced call management features.
 
-**Papercup features**
-* rich text blog CMS
-* embedded subscription payment portal via [Stripe Checkout](https://docs.stripe.com/payments/accept-a-payment?platform=web&ui=embedded-form)
-* built-in referral marketing via [Rewardful](https://www.rewardful.com/?via=speedrail)
-* admin panel with Tailwind CSS via [Active Admin](https://github.com/activeadmin/activeadmin/)
-* user authentication via [Devise](https://github.com/plataformatec/devise)
-* A/B testing with [Split](https://github.com/splitrb/split/)
-* design via [Flowbite](https://flowbite.com/) and [Tailwind UI](https://tailwindui.com/)
-* SEO toolbelt via [metamagic](https://github.com/lassebunk/metamagic)
-* responsive and mobile friendly navigation
-* beautiful code coverage GUI via [SimpleCov](https://github.com/simplecov-ruby/simplecov) and [TailwindCov](https://github.com/chiefpansancolt/simplecov-tailwindcss)
-* rename your app in 1 command with [Rename](https://github.com/get/Rename)
-* debugging with [Better Errors](https://github.com/charliesome/better_errors)
-* production-ready DB with Postgres
-* easy API requests with [HTTParty](https://github.com/jnunemaker/httparty)
-* Postmark for transactional emails, [letter_opener](https://github.com/ryanb/letter_opener) for local preview
-* script tag GUI (for Google Analytics, etc)
-* testing suite via [RSpec](https://github.com/rspec/rspec-rails/)
-* cron job task scheduler (`lib/tasks/scheduler.rake`)
-* random data generation with [Faker](https://github.com/faker-ruby/faker)
-* Heroku <> Cloudflare HTTPS via `lib/cloudflare_proxy.rb`
-* background job queue via [Delayed](https://rubygems.org/gems/delayed)
-* interactive charts via [Chartkick](https://chartkick.com)
-* automated testing via GitHub actions + PR status check
-* Rubocop for code style enforcement and linting auto-fixes
+## Features
 
-## Installation
-1. clone the repo
-2. `speedrail/bin/speedrail new_app_name`
-3. inspect, then save/close the generated credentials file
-4. `cd new_app_name`
+- WebRTC-powered voice calling with low latency
+- Secure payment processing with Money-Rails
+- User authentication and account management
+- Interactive dialer functionality
+- Call initiation, handling, and quality monitoring
+- Mobile-responsive UI built with Tailwind CSS
+- Background job processing via Sidekiq
 
-**For detailed, step by step tutorials to using Papercup, get lifetime access to the [Papercup Docs](https://gitpaywall.com/p/ryanckulp/speedrail-docs) for a one-time fee of $49.**
+## Technology Stack
 
-## Development
-```sh
-bin/dev # uses foreman to boot server, frontend, and bg job queue
+- **Frontend**: Stimulus, Turbo, Tailwind CSS
+- **Backend**: Ruby on Rails
+- **Database**: PostgreSQL
+- **Background Jobs**: Sidekiq
+- **Real-time Communication**: WebRTC
+- **Payment Processing**: Money-Rails
+- **Deployment**: Hetzner Cloud, Hatchbox
+
+## Getting Started
+
+### Prerequisites
+
+- Ruby 3.x
+- Rails 8.x
+- PostgreSQL
+- Node.js and Yarn
+- Redis (for Sidekiq)
+
+### Installation
+
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/papercup.git
+cd papercup
 ```
 
-To sync your project with the latest Papercup improvements:
-
-```sh
-# one time only
-git remote add speedrail https://github.com/ryanckulp/speedrail.git
-
-# when you notice Papercup updates on GitHub
-git pull
-git fetch speedrail
-git merge speedrail/master --allow-unrelated-histories
-git checkout -b speedrail_updates
-git add .
-git push speedrail_updates
-# use GitHub UI to handle conflicts
+2. Install dependencies
+```bash
+bundle install
+yarn install
 ```
+
+3. Setup the database
+```bash
+rails db:create db:migrate db:seed
+```
+
+4. Start the development server
+```bash
+bin/dev
+```
+
+## Development Guidelines
+
+### Code Standards
+- 2-space indentation for all code files
+- Snake case for Ruby, camelCase for JavaScript
+- Maximum line length of 100 characters
+- Include typed parameters where possible
+
+### Frontend Development
+- Use Work Sans font family for all UI components
+- Follow the defined color scheme (#000000, #FFFFFF, #FFD700, #4CAF50, #FF4444, #F5F5F5, #333333)
+- Use Stimulus controllers for all interactive components
+- Prefer data attributes for Stimulus targets over IDs
+- Use Tailwind CSS utility classes - avoid custom CSS when possible
+
+### Backend Development
+- Follow frontend-first development approach
+- Create service objects for complex business logic
+- Use Active Record scopes for common queries
+- All database operations involving credits must be atomic
+- Use background jobs for all processing that takes >100ms
 
 ## Testing
-```sh
-# headless
-bundle exec rspec # run all tests inside spec/
-bundle exec rspec spec/dir_name # run all tests inside given directory
 
-# headed (in a real browser)
+```bash
+# Run all tests
+bundle exec rspec
+
+# Run specific test directory
+bundle exec rspec spec/models
+
+# Run tests with browser visibility
 HEADED=TRUE bundle exec rspec
 ```
 
-## Code Quality
+## WebRTC Implementation
 
-clean code keeps projects manageable as they grow in complexity.
+- Always use secure connections (SRTP/DTLS)
+- Include STUN/TURN server configuration
+- Handle browser permissions explicitly
+- Implement graceful degradation for unsupported browsers
+- Monitor and log connection quality metrics
 
-```sh
-rubocop # checks your code against Ruby styling standards and calls out issues
-rubocop -A # automatically fixes issues, can lead to false negatives
-rubocop -a # automatically fixes "safe" issues, less aggressive than -A (uppercase)
-```
+## Deployment
 
-**Rubocop is an optional feature**, however it runs automatically during GitHub CI checks. if you don't want to enforce the Rubocop style guide, simply disable the `Rubocop Check` step inside `ci.yml`.
+The application is configured for deployment on Hetzner Cloud using Hatchbox with zero-downtime deployment capabilities.
+
+## Security
+
+- All WebRTC connections are secured with SRTP/DTLS
+- Phone numbers are validated with phonelib
+- WebRTC tokens have short expiration times
+- CSRF protection is implemented on all forms
+- All user inputs are sanitized
 
 ## Contributing
-anyone is welcome to submit a PR with improvements of any kind.
+
+1. Create a feature branch (`git checkout -b feature/amazing-feature`)
+2. Commit your changes (`git commit -m 'Add some amazing feature'`)
+3. Push to the branch (`git push origin feature/amazing-feature`)
+4. Open a Pull Request
+
+Please ensure your code adheres to our style guidelines and passes all tests.
