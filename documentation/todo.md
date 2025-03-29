@@ -301,9 +301,9 @@ This checklist covers all aspects of implementing the Papercup browser-based int
 ## WebRTC Implementation
 
 ### Server Configuration
-- [ ] Setup STUN/TURN servers
-  - [ ] Configure Coturn
-  - [ ] Setup authentication
+- [ ] Setup STUN servers
+  - [ ] Configure public STUN servers
+  - [ ] Add fallback servers
   - [ ] Add monitoring
 - [ ] Implement WebRTC token generation
   - [ ] Create secure credentials

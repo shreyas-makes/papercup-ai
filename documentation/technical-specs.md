@@ -416,11 +416,6 @@ media_server:
   janus_api_key: <%= ENV['JANUS_API_KEY'] %>
   freeswitch_event_socket: <%= ENV['FREESWITCH_ESL'] %>
 
-turn_server:
-  username: <%= ENV['TURN_USERNAME'] %>
-  credential: <%= ENV['TURN_CREDENTIAL'] %>
-  realm: <%= ENV['TURN_REALM'] %>
-
 monitoring:
   sentry_dsn: <%= ENV['SENTRY_DSN'] %>
   newrelic_key: <%= ENV['NEWRELIC_KEY'] %>
@@ -450,11 +445,6 @@ Would you like me to detail any specific section further or proceed with additio
 
 # config/initializers/webrtc.rb
 Papercup::Application.config.webrtc = {
-  turn_servers: [{
-    urls: ENV['TURN_SERVER_URL'],
-    username: ENV['TURN_USERNAME'],
-    credential: ENV['TURN_PASSWORD']
-  }],
   stun_servers: ['stun:stun.l.google.com:19302']
 }
 

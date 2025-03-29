@@ -57,7 +57,6 @@ Sensitive credentials are stored in Rails encrypted credentials:
 Required credentials:
 - Twilio (for SIP gateway)
 - Stripe (for payments)
-- TURN server credentials (for WebRTC)
 
 ## Getting Started
 
@@ -131,7 +130,7 @@ HEADED=TRUE bundle exec rspec
 ## WebRTC Implementation
 
 - Always use secure connections (SRTP/DTLS)
-- Include STUN/TURN server configuration
+- Configure public STUN servers (Google STUN used by default)
 - Handle browser permissions explicitly
 - Implement graceful degradation for unsupported browsers
 - Monitor and log connection quality metrics
