@@ -1,21 +1,109 @@
 <% meta title: "Dialer", description: "Make international calls with Papercup" %>
 
-<div class="max-w-3xl mx-auto bg-secondary rounded-lg shadow-lg overflow-hidden">
+<div class="max-w-3xl mx-auto bg-secondary rounded-lg shadow-lg overflow-hidden" data-controller="dialer">
   <!-- Dialer header -->
   <div class="bg-primary text-secondary py-4 px-6">
     <h1 class="text-2xl font-semibold">Papercup Dialer</h1>
     <p class="text-sm opacity-80">Make international calls from your browser</p>
   </div>
 
-  <!-- Dialer input -->
+  <!-- Dialer input with country selector -->
   <div class="p-6 border-b border-background">
-    <div class="relative">
-      <input type="tel" class="w-full py-3 px-4 border-2 border-background rounded-lg text-xl focus:ring-2 focus:ring-accent focus:border-accent" placeholder="+1 (234) 567-8910" data-controller="dialer" data-dialer-target="input">
-      <button class="absolute right-2 top-1/2 transform -translate-y-1/2 text-text-secondary hover:text-primary">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+    <div class="w-full max-w-[320px] mx-auto relative" 
+         id="dialer-input-container"
+         data-controller="country-selector phone-input"
+         data-dialer-phone-input-outlet="#dialer-input-container">
+      
+      <!-- Combined phone input with country selector -->
+      <div class="relative flex h-12 border border-[#EEEEEE] rounded-lg overflow-hidden">
+        <!-- Country selector button -->
+        <button class="flex items-center px-2 border-r border-[#EEEEEE] bg-[#F5F5F5] hover:bg-gray-200 transition-colors"
+                data-country-selector-target="button"
+                data-action="click->country-selector#toggle">
+          <span class="text-lg mr-1" data-country-selector-target="selectedFlag">🇺🇸</span>
+          <span class="text-sm font-medium" data-country-selector-target="selectedCode">+1</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        
+        <!-- Phone input field -->
+        <div class="relative flex-1 flex items-center">
+          <input type="tel" 
+                 class="w-full h-full px-3 focus:ring-2 focus:ring-accent focus:outline-none" 
+                 placeholder="(234) 567-8910" 
+                 maxlength="25"
+                 data-country-selector-target="phoneInput"
+                 data-phone-input-target="input"
+                 data-dialer-target="input"
+                 data-action="input->phone-input#handleInput">
+          
+          <!-- Validation indicator -->
+          <div class="absolute left-0 bottom-0 w-full h-1 bg-background transition-colors"
+               data-phone-input-target="validationIndicator"></div>
+          
+          <!-- Clear button -->
+          <button class="absolute right-2 text-text-secondary hover:text-primary hidden"
+                  data-phone-input-target="clearButton"
+                  data-action="click->phone-input#clear">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Country dropdown -->
+      <div class="absolute z-10 w-full max-w-[320px] mt-1 bg-white border border-[#EEEEEE] rounded-lg shadow-lg hidden"
+           data-country-selector-target="dropdown">
+        <!-- Search input -->
+        <div class="p-2 border-b border-[#EEEEEE]">
+          <input type="text" 
+                 class="w-full px-3 py-2 border border-[#EEEEEE] rounded-md focus:ring-2 focus:ring-accent focus:outline-none"
+                 placeholder="Search countries..."
+                 data-country-selector-target="search"
+                 data-action="input->country-selector#search">
+        </div>
+        
+        <!-- Countries list -->
+        <div class="max-h-64 overflow-y-auto py-2">
+          <% # Render countries from JavaScript data %>
+          <script>
+            document.addEventListener('DOMContentLoaded', () => {
+              console.log("Setting up countries in DOM");
+              
+              // Get countries data from the window object
+              const countries = window.Papercup?.countries || [];
+              console.log("Countries data:", countries);
+              
+              const container = document.querySelector('[data-country-list-container]');
+              if (!container) {
+                console.error("Country list container not found");
+                return;
+              }
+              
+              // Generate country buttons
+              countries.forEach(country => {
+                const element = document.createElement('button');
+                element.className = 'w-full px-3 py-2 flex items-center hover:bg-[#F5F5F5] transition-colors';
+                element.dataset.action = 'click->country-selector#selectCountry';
+                element.dataset.country = country.code;
+                element.dataset.name = country.name;
+                element.dataset.dialCode = country.dial_code;
+                
+                element.innerHTML = `
+                  <span class="text-lg mr-2">${country.flag}</span>
+                  <span class="flex-1 text-left">${country.name}</span>
+                  <span class="text-sm font-medium text-text-secondary">${country.dial_code}</span>
+                `;
+                
+                container.appendChild(element);
+              });
+            });
+          </script>
+          <div data-country-list-container></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -42,5 +130,11 @@
 <div class="max-w-3xl mx-auto mt-8 p-6 bg-secondary rounded-lg shadow-lg">
   <h2 class="text-xl font-semibold mb-4">Recent Calls</h2>
   <p class="text-text-secondary">Your recent calls will appear here.</p>
-  <!-- This will be populated with actual call history later -->
-</div> 
+</div>
+
+<% # Initialize country data for the browser with debugging %>
+<script>
+  window.Papercup = window.Papercup || {};
+  window.Papercup.countries = <%= raw @countries.to_json %>;
+  console.log("Countries data initialized:", window.Papercup.countries);
+</script> 
