@@ -15,7 +15,7 @@
          data-dialer-phone-input-outlet="#dialer-input-container">
       
       <!-- Combined phone input with country selector -->
-      <div class="relative flex h-16 border border-[#EEEEEE] rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 focus-within:ring-2 focus-within:ring-accent focus-within:border-transparent">
+      <div class="relative flex h-16 border border-[#EEEEEE] rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 focus-within:ring-4 focus-within:ring-accent focus-within:border-transparent">
         <!-- Country selector button -->
         <button class="flex items-center space-x-2 px-4 border-r border-[#EEEEEE] bg-[#F5F5F5] hover:bg-gray-200 transition-colors rounded-l-lg"
                 data-country-selector-target="button"
@@ -47,7 +47,7 @@
                   data-phone-input-target="clearButton"
                   data-action="click->phone-input#clear">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
@@ -59,7 +59,6 @@
         <!-- Search input -->
         <div class="p-2 border-b border-[#EEEEEE]">
           <input type="text" 
-                 class="w-full px-3 py-2 border border-[#EEEEEE] rounded-md focus:ring-2 focus:ring-accent focus:outline-none"
                  placeholder="Search countries..."
                  data-country-selector-target="search"
                  data-action="input->country-selector#search">
