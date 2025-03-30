@@ -9,28 +9,28 @@
 
   <!-- Dialer input with country selector -->
   <div class="p-6 border-b border-background">
-    <div class="w-full max-w-[320px] mx-auto relative" 
+    <div class="w-full max-w-[480px] mx-auto relative p-1" 
          id="dialer-input-container"
          data-controller="country-selector phone-input"
          data-dialer-phone-input-outlet="#dialer-input-container">
       
       <!-- Combined phone input with country selector -->
-      <div class="relative flex h-12 border border-[#EEEEEE] rounded-lg overflow-hidden">
+      <div class="relative flex h-16 border border-[#EEEEEE] rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 focus-within:ring-2 focus-within:ring-accent focus-within:border-transparent">
         <!-- Country selector button -->
-        <button class="flex items-center px-2 border-r border-[#EEEEEE] bg-[#F5F5F5] hover:bg-gray-200 transition-colors"
+        <button class="flex items-center space-x-2 px-4 border-r border-[#EEEEEE] bg-[#F5F5F5] hover:bg-gray-200 transition-colors rounded-l-lg"
                 data-country-selector-target="button"
                 data-action="click->country-selector#toggle">
-          <span class="text-lg mr-1" data-country-selector-target="selectedFlag">🇺🇸</span>
-          <span class="text-sm font-medium" data-country-selector-target="selectedCode">+1</span>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <span class="text-2xl" data-country-selector-target="selectedFlag">🇺🇸</span>
+          <span class="text-lg font-medium" data-country-selector-target="selectedCode">+1</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
           </svg>
         </button>
         
         <!-- Phone input field -->
-        <div class="relative flex-1 flex items-center">
+        <div class="relative flex-1 flex items-center overflow-hidden rounded-r-lg">
           <input type="tel" 
-                 class="w-full h-full px-3 focus:ring-2 focus:ring-accent focus:outline-none" 
+                 class="w-full h-full px-4 text-xl focus:outline-none appearance-none bg-white rounded-r-lg" 
                  placeholder="(234) 567-8910" 
                  maxlength="25"
                  data-country-selector-target="phoneInput"
@@ -39,11 +39,11 @@
                  data-action="input->phone-input#handleInput">
           
           <!-- Validation indicator -->
-          <div class="absolute left-0 bottom-0 w-full h-1 bg-background transition-colors"
+          <div class="absolute left-0 bottom-0 w-full h-1 bg-background transition-colors rounded-br-lg"
                data-phone-input-target="validationIndicator"></div>
           
           <!-- Clear button -->
-          <button class="absolute right-2 text-text-secondary hover:text-primary hidden"
+          <button class="absolute right-3 p-1 text-text-secondary hover:text-primary hidden rounded-full hover:bg-gray-100"
                   data-phone-input-target="clearButton"
                   data-action="click->phone-input#clear">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -54,7 +54,7 @@
       </div>
       
       <!-- Country dropdown -->
-      <div class="absolute z-10 w-full max-w-[320px] mt-1 bg-white border border-[#EEEEEE] rounded-lg shadow-lg hidden"
+      <div class="absolute z-10 w-full mt-2 bg-white border border-[#EEEEEE] rounded-lg shadow-lg hidden"
            data-country-selector-target="dropdown">
         <!-- Search input -->
         <div class="p-2 border-b border-[#EEEEEE]">
