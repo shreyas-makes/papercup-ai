@@ -1,139 +1,166 @@
 <% meta title: "Dialer", description: "Make international calls with Papercup" %>
 
-<div class="max-w-3xl mx-auto bg-secondary rounded-lg shadow-lg overflow-hidden" data-controller="dialer">
-  <!-- Dialer header -->
-  <div class="bg-primary text-secondary py-4 px-6">
-    <h1 class="text-2xl font-semibold">Papercup Dialer</h1>
-    <p class="text-sm opacity-80">Make international calls from your browser</p>
-  </div>
+<!-- Pass countries data via data attribute -->
+<div class="flex flex-col lg:flex-row gap-8">
+  <!-- Left Column: Dialer UI -->
+  <div class="w-full lg:w-1/2 xl:w-1/3">
+    <div class="max-w-md mx-auto bg-secondary rounded-lg shadow-lg overflow-hidden" data-controller="dialer">
+      <!-- Dialer header -->
+      <div class="bg-primary text-secondary py-4 px-6">
+        <h1 class="text-2xl font-semibold">Dialer</h1>
+        <p class="text-sm opacity-80">Make international calls from your browser</p>
+      </div>
 
-  <!-- Dialer input with country selector -->
-  <div class="p-6 border-b border-background">
-    <div class="w-full max-w-[480px] mx-auto relative p-1" 
-         id="dialer-input-container"
-         data-controller="country-selector phone-input"
-         data-dialer-phone-input-outlet="#dialer-input-container">
-      
-      <!-- Combined phone input with country selector -->
-      <div class="relative flex h-16 border border-[#EEEEEE] rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 focus-within:ring-4 focus-within:ring-accent focus-within:border-transparent">
-        <!-- Country selector button -->
-        <button class="flex items-center space-x-2 px-4 border-r border-[#EEEEEE] bg-[#F5F5F5] hover:bg-gray-200 transition-colors rounded-l-lg"
-                data-country-selector-target="button"
-                data-action="click->country-selector#toggle">
-          <span class="text-2xl" data-country-selector-target="selectedFlag">🇺🇸</span>
-          <span class="text-lg font-medium" data-country-selector-target="selectedCode">+1</span>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        
-        <!-- Phone input field -->
-        <div class="relative flex-1 flex items-center overflow-hidden rounded-r-lg">
-          <input type="tel" 
-                 class="w-full h-full px-4 text-xl focus:outline-none appearance-none bg-white rounded-r-lg" 
-                 placeholder="(234) 567-8910" 
-                 maxlength="25"
-                 data-country-selector-target="phoneInput"
-                 data-phone-input-target="input"
-                 data-dialer-target="input"
-                 data-action="input->phone-input#handleInput">
+      <!-- Dialer input with country selector -->
+      <div class="p-6 border-b border-background">
+        <div class="w-full max-w-[480px] mx-auto relative p-1" 
+             id="dialer-input-container"
+             data-controller="country-selector phone-input"
+             data-dialer-phone-input-outlet="#dialer-input-container">
           
-          <!-- Validation indicator -->
-          <div class="absolute left-0 bottom-0 w-full h-1 bg-background transition-colors rounded-br-lg"
-               data-phone-input-target="validationIndicator"></div>
+          <!-- Combined phone input with country selector -->
+          <div class="relative flex h-16 border border-[#EEEEEE] rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 focus-within:ring-4 focus-within:ring-accent focus-within:border-transparent">
+            <!-- Country selector button -->
+            <button class="flex items-center space-x-2 px-4 border-r border-[#EEEEEE] bg-[#F5F5F5] hover:bg-gray-200 transition-colors rounded-l-lg"
+                    data-country-selector-target="button"
+                    data-action="click->country-selector#toggle">
+              <span class="text-2xl" data-country-selector-target="selectedFlag">🇺🇸</span>
+              <span class="text-lg font-medium" data-country-selector-target="selectedCode">+1</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            <!-- Phone input field -->
+            <div class="relative flex-1 flex items-center overflow-hidden rounded-r-lg">
+              <input type="tel" 
+                     class="w-full h-full px-4 text-xl focus:outline-none appearance-none bg-white rounded-r-lg" 
+                     placeholder="(234) 567-8910" 
+                     maxlength="25"
+                     data-country-selector-target="phoneInput"
+                     data-phone-input-target="input"
+                     data-dialer-target="input"
+                     data-action="input->phone-input#handleInput">
+              
+              <!-- Validation indicator -->
+              <div class="absolute left-0 bottom-0 w-full h-1 bg-background transition-colors rounded-br-lg"
+                   data-phone-input-target="validationIndicator"></div>
+              
+              <!-- Clear button -->
+              <button class="absolute right-3 p-1 text-text-secondary hover:text-primary hidden rounded-full hover:bg-gray-100"
+                      data-phone-input-target="clearButton"
+                      data-action="click->phone-input#clear">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
           
-          <!-- Clear button -->
-          <button class="absolute right-3 p-1 text-text-secondary hover:text-primary hidden rounded-full hover:bg-gray-100"
-                  data-phone-input-target="clearButton"
-                  data-action="click->phone-input#clear">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          <!-- Country dropdown -->
+          <div class="absolute z-10 w-full mt-2 bg-white border border-[#EEEEEE] rounded-lg shadow-lg hidden"
+               data-country-selector-target="dropdown">
+            <!-- Search input -->
+            <div class="p-2 border-b border-[#EEEEEE]">
+              <input type="text" 
+                     placeholder="Search countries..."
+                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent" 
+                     data-country-selector-target="search"
+                     data-action="input->country-selector#search">
+            </div>
+            
+            <!-- Countries list -->
+            <div class="max-h-64 overflow-y-auto py-2" data-country-selector-target="countryListContainer">
+              <%# Content will be rendered by Stimulus controller %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dialer keypad -->
+      <div class="grid grid-cols-3 gap-2 p-6">
+        <% %w[1 2 3 4 5 6 7 8 9 * 0 #].each do |key| %>
+          <button class="bg-background hover:bg-gray-200 text-primary text-2xl font-medium py-4 rounded-lg transition-colors shadow-sm hover:shadow active:scale-95" 
+                  data-action="click->dialer#addKey" 
+                  data-dialer-key="<%= key %>">
+            <%= key %>
           </button>
-        </div>
+        <% end %>
       </div>
-      
-      <!-- Country dropdown -->
-      <div class="absolute z-10 w-full mt-2 bg-white border border-[#EEEEEE] rounded-lg shadow-lg hidden"
-           data-country-selector-target="dropdown">
-        <!-- Search input -->
-        <div class="p-2 border-b border-[#EEEEEE]">
-          <input type="text" 
-                 placeholder="Search countries..."
-                 data-country-selector-target="search"
-                 data-action="input->country-selector#search">
-        </div>
-        
-        <!-- Countries list -->
-        <div class="max-h-64 overflow-y-auto py-2">
-          <% # Render countries from JavaScript data %>
-          <script>
-            document.addEventListener('DOMContentLoaded', () => {
-              console.log("Setting up countries in DOM");
-              
-              // Get countries data from the window object
-              const countries = window.Papercup?.countries || [];
-              console.log("Countries data:", countries);
-              
-              const container = document.querySelector('[data-country-list-container]');
-              if (!container) {
-                console.error("Country list container not found");
-                return;
-              }
-              
-              // Generate country buttons
-              countries.forEach(country => {
-                const element = document.createElement('button');
-                element.className = 'w-full px-3 py-2 flex items-center hover:bg-[#F5F5F5] transition-colors';
-                element.dataset.action = 'click->country-selector#selectCountry';
-                element.dataset.country = country.code;
-                element.dataset.name = country.name;
-                element.dataset.dialCode = country.dial_code;
-                
-                element.innerHTML = `
-                  <span class="text-lg mr-2">${country.flag}</span>
-                  <span class="flex-1 text-left">${country.name}</span>
-                  <span class="text-sm font-medium text-text-secondary">${country.dial_code}</span>
-                `;
-                
-                container.appendChild(element);
-              });
-            });
-          </script>
-          <div data-country-list-container></div>
-        </div>
+
+      <!-- Call button -->
+      <div class="p-6 bg-background">
+        <button class="w-full py-4 bg-success hover:bg-opacity-90 text-white rounded-lg flex items-center justify-center space-x-2 text-xl font-medium shadow-md hover:shadow-lg active:scale-95 transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+          <span>Call</span>
+        </button>
       </div>
+    </div>
+
+    <!-- Call History (below dialer in left column) -->
+    <div class="max-w-md mx-auto mt-8 p-6 bg-secondary rounded-lg shadow-lg">
+      <h2 class="text-xl font-semibold mb-4">Recent Calls</h2>
+      <p class="text-text-secondary">Your recent calls will appear here.</p>
     </div>
   </div>
 
-  <!-- Dialer keypad -->
-  <div class="grid grid-cols-3 gap-2 p-6">
-    <% %w[1 2 3 4 5 6 7 8 9 * 0 #].each do |key| %>
-      <button class="bg-background hover:bg-gray-200 text-primary text-2xl font-medium py-4 rounded-lg transition-colors" data-action="click->dialer#addKey" data-dialer-key="<%= key %>">
-        <%= key %>
-      </button>
-    <% end %>
-  </div>
+  <!-- Right Column: Service Information -->
+  <div class="w-full lg:w-1/2 xl:w-2/3">
+    <div class="space-y-8">
+      <!-- How it Works -->
+      <div class="p-6 bg-secondary rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold mb-4 text-primary">How Papercup Works</h2>
+        <div class="space-y-3 text-text-secondary">
+          <p>1. Select the country you want to call.</p>
+          <p>2. Enter the phone number using the keypad.</p>
+          <p>3. Click the "Call" button.</p>
+          <p>4. Add credits easily using our secure payment system.</p>
+          <p>Enjoy crystal-clear international calls directly from your browser!</p>
+        </div>
+      </div>
 
-  <!-- Call button -->
-  <div class="p-6 bg-background">
-    <button class="w-full py-4 bg-success hover:bg-opacity-90 text-white rounded-lg flex items-center justify-center space-x-2 text-xl font-medium">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-      </svg>
-      <span>Call</span>
-    </button>
+      <!-- Pricing -->
+      <div class="p-6 bg-secondary rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold mb-4 text-primary">Simple Pricing</h2>
+        <p class="text-text-secondary mb-4">Pay only for what you use. Credits never expire.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="border border-background rounded-lg p-4 text-center">
+            <div class="text-xl font-bold text-accent">$5</div>
+            <div class="text-sm text-text-secondary mt-1">Starter Pack</div>
+          </div>
+          <div class="border border-background rounded-lg p-4 text-center">
+            <div class="text-xl font-bold text-accent">$10</div>
+            <div class="text-sm text-text-secondary mt-1">Value Pack</div>
+          </div>
+          <div class="border border-background rounded-lg p-4 text-center">
+            <div class="text-xl font-bold text-accent">$20</div>
+            <div class="text-sm text-text-secondary mt-1">Pro Pack</div>
+          </div>
+        </div>
+        <%= link_to "View Detailed Rates", credits_path, class: "mt-4 inline-block text-primary hover:text-text-secondary underline" %>
+      </div>
+
+      <!-- Features -->
+      <div class="p-6 bg-secondary rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold mb-4 text-primary">Features</h2>
+        <ul class="list-disc list-inside space-y-2 text-text-secondary">
+          <li>Call over 150 countries worldwide</li>
+          <li>No app downloads required - call from your browser</li>
+          <li>Crystal-clear call quality</li>
+          <li>Secure and private connections</li>
+          <li>Easy credit top-up</li>
+          <li>Track your call history</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="max-w-3xl mx-auto mt-8 p-6 bg-secondary rounded-lg shadow-lg">
-  <h2 class="text-xl font-semibold mb-4">Recent Calls</h2>
-  <p class="text-text-secondary">Your recent calls will appear here.</p>
-</div>
+<%# Embed countries data in a script tag %>
+<script type="application/json" id="countries-data">
+  <%= raw @countries.to_json %>
+</script>
 
-<% # Initialize country data for the browser with debugging %>
-<script>
-  window.Papercup = window.Papercup || {};
-  window.Papercup.countries = <%= raw @countries.to_json %>;
-  console.log("Countries data initialized:", window.Papercup.countries);
-</script> 
+<%# Removed the initialization script as the controller now handles data loading and rendering %> 
