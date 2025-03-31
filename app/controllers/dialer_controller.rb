@@ -3,6 +3,11 @@ class DialerController < ApplicationController
     @countries = countries_data
   end
 
+  def test
+    # Simple test action for the active call screen
+    @countries = countries_data
+  end
+
   private
 
   def countries_data

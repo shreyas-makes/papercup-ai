@@ -5,8 +5,8 @@ import { Controller } from "@hotwired/stimulus"
  */
 export default class extends Controller {
   static targets = ["input"]
-  // Define an outlet for the phone-input controller
-  static outlets = [ "phone-input" ]
+  // Define outlets for the phone-input and active-call controllers
+  static outlets = [ "phone-input", "active-call" ]
 
   connect() {
     console.log("Dialer controller connected", this.element)
@@ -26,6 +26,11 @@ export default class extends Controller {
   // Optional: Callback when the outlet connects
   phoneInputOutletConnected(outlet, element) {
     console.log("Phone input outlet connected:", outlet, element)
+  }
+  
+  // Callback when active-call outlet connects
+  activeCallOutletConnected(outlet, element) {
+    console.log("Active call outlet connected:", outlet, element)
   }
 
   /**
@@ -137,8 +142,16 @@ export default class extends Controller {
     try {
       // Get the selected country code from the country selector
       const countryCode = this.element.querySelector('[data-country-selector-target="selectedCode"]').textContent
+      const formattedNumber = this.inputTarget.value
       
-      // Prepare the call data
+      // Using the active-call controller to handle the call UI
+      if (this.hasActiveCallOutlet) {
+        this.activeCallOutlet.startCall(formattedNumber, countryCode)
+      } else {
+        console.error("activeCallOutlet is not connected in initiateCall")
+      }
+      
+      // Prepare the call data for API
       const callData = {
         phone_number: phoneNumber,
         country_code: countryCode
@@ -161,13 +174,13 @@ export default class extends Controller {
 
       const result = await response.json()
       console.log("Call initiated successfully:", result)
-      
-      // TODO: Show call screen overlay
-      // TODO: Update call status
-      // TODO: Handle call events
 
     } catch (error) {
       console.error("Failed to initiate call:", error)
+      // End the call UI if there was an API error
+      if (this.hasActiveCallOutlet) {
+        this.activeCallOutlet.endCall()
+      }
       // TODO: Show error message to user
     }
 

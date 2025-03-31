@@ -83,19 +83,19 @@ This checklist covers all aspects of implementing the Papercup browser-based int
   - [x] Add appropriate styling
 
 ### Active Call Interface
-- [ ] Build call screen overlay
-  - [ ] Create fixed position container
-  - [ ] Add fade-in animation
-  - [ ] Style according to specifications
-- [ ] Implement call information display
-  - [ ] Show dialed number
-  - [ ] Create duration timer
-  - [ ] Display current credit balance
-  - [ ] Add call status indicator
-- [ ] Create end call button
-  - [ ] Style red circular button
-  - [ ] Add hover state
-  - [ ] Implement click handler
+- [x] Build call screen overlay
+  - [x] Create fixed position container
+  - [x] Add fade-in animation
+  - [x] Style according to specifications
+- [x] Implement call information display
+  - [x] Show dialed number
+  - [x] Create duration timer
+  - [x] Display current credit balance
+  - [x] Add call status indicator
+- [x] Create end call button
+  - [x] Style red circular button
+  - [x] Add hover state
+  - [x] Implement click handler
 
 ### Credits Interface
 - [x] Implement credit purchase screen
@@ -406,7 +406,7 @@ This checklist covers all aspects of implementing the Papercup browser-based int
 - [ ] Implement UI component tests
   - [ ] Test keypad
   - [x] Test call history
-  - [ ] Test notifications
+  - [x] Test active call screen
 - [ ] Create system tests
   - [ ] Test complete user flows
   - [ ] Test responsive design

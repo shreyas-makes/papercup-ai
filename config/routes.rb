@@ -31,6 +31,7 @@ Rails.application.routes.draw do
 
   # Dialer and calling routes
   resources :dialer, only: [:index]
+  get 'dialer/test', to: 'dialer#test', as: 'dialer_test'
   resources :credits, only: [:index]
   resources :call_history, only: [:index]
 

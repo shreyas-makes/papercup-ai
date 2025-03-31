@@ -4,7 +4,7 @@
 <div class="flex flex-col lg:flex-row gap-8">
   <!-- Left Column: Dialer UI -->
   <div class="w-full lg:w-1/2 xl:w-1/3">
-    <div class="max-w-md mx-auto bg-secondary rounded-lg shadow-lg overflow-hidden" data-controller="dialer">
+    <div class="max-w-md mx-auto bg-secondary rounded-lg shadow-lg overflow-hidden" data-controller="dialer active-call">
       <!-- Dialer header -->
       <div class="bg-primary text-secondary py-4 px-6">
         <h1 class="text-2xl font-semibold">Dialer</h1>
@@ -97,6 +97,45 @@
           </svg>
           <span>Call</span>
         </button>
+      </div>
+      
+      <!-- Test Call Button (for development) -->
+      <div class="p-4 bg-background">
+        <button class="w-full py-2 bg-amber-400 hover:bg-amber-500 text-white rounded-lg flex items-center justify-center space-x-2 text-sm font-medium shadow-md hover:shadow-lg active:scale-95 transition-all"
+                data-action="click->active-call#toggleTestCall">
+          <span>Toggle Test Call</span>
+        </button>
+      </div>
+      
+      <!-- Active Call Screen Overlay -->
+      <div class="absolute inset-0 z-[9999] bg-white rounded-lg shadow-lg opacity-0 transition-opacity duration-200 hidden flex flex-col items-center justify-center"
+           data-active-call-target="overlay">
+        <!-- Call Information -->
+        <div class="px-6 text-center">
+          <!-- Phone Number Display -->
+          <div class="text-2xl font-semibold mb-4" data-active-call-target="phoneNumber">+1 555-123-4567</div>
+          
+          <!-- Call Status -->
+          <div class="text-green-500 font-medium mb-4" data-active-call-target="status">Connecting...</div>
+          
+          <!-- Call Timer -->
+          <div class="text-4xl font-bold mb-6" data-active-call-target="timer">0:00</div>
+          
+          <!-- Credit Balance -->
+          <div class="text-sm text-gray-500 mb-10">
+            Balance: <span data-active-call-target="credits">$10.00</span>
+          </div>
+        </div>
+        
+        <!-- End Call Button -->
+        <div class="flex justify-center">
+          <button class="w-16 h-16 rounded-full bg-[#FF4444] hover:bg-[#E60000] flex items-center justify-center shadow-[0px_4px_8px_rgba(255,68,68,0.25)] active:scale-95 transition-all"
+                  data-action="click->active-call#endCall">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
