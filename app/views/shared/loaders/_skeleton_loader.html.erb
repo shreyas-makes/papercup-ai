@@ -1,0 +1,39 @@
+<%# Skeleton Loader Component %>
+<div class="animate-pulse <%= container_class %>">
+  <% if type == 'dialer' %>
+    <%# Dialer pad skeleton %>
+    <div class="space-y-4">
+      <div class="h-12 bg-gray-200 rounded-md"></div>
+      <div class="grid grid-cols-3 gap-3">
+        <% 9.times do %>
+          <div class="h-16 bg-gray-200 rounded-md"></div>
+        <% end %>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div class="h-16 bg-gray-200 rounded-md col-start-2"></div>
+        <div class="h-16 bg-gray-200 rounded-md"></div>
+      </div>
+      <div class="h-14 bg-gray-200 rounded-md"></div>
+    </div>
+  <% elsif type == 'country_selector' %>
+    <%# Country selector skeleton %>
+    <div class="space-y-2">
+      <div class="h-10 bg-gray-200 rounded-md"></div>
+      <div class="space-y-2">
+        <% 5.times do %>
+          <div class="h-8 bg-gray-200 rounded-md"></div>
+        <% end %>
+      </div>
+    </div>
+  <% elsif type == 'credit_update' %>
+    <%# Credit update skeleton %>
+    <div class="h-8 w-24 bg-gray-200 rounded-md"></div>
+  <% else %>
+    <%# Generic skeleton based on count %>
+    <div class="space-y-3">
+      <% (count || 3).times do %>
+        <div class="h-<%= height || 10 %> bg-gray-200 rounded-md"></div>
+      <% end %>
+    </div>
+  <% end %>
+</div> 

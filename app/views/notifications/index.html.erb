@@ -1,0 +1,113 @@
+<div class="container mx-auto py-8 px-4">
+  <h1 class="text-2xl font-bold mb-6">Notification Components Test Page</h1>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold mb-4">Banners</h2>
+      
+      <div class="space-y-4">
+        <button
+          class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded"
+          data-controller="notification-trigger"
+          data-action="notification-trigger#showLowBalanceBanner">
+          Show Low Balance Banner
+        </button>
+      </div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold mb-4">Error Notifications</h2>
+      
+      <div class="space-y-4">
+        <button
+          class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded"
+          data-controller="notification-trigger"
+          data-action="notification-trigger#showNetworkError">
+          Show Network Error
+        </button>
+        
+        <button
+          class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded"
+          data-controller="notification-trigger"
+          data-action="notification-trigger#showInvalidNumberError">
+          Show Invalid Number Error
+        </button>
+        
+        <button
+          class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded"
+          data-controller="notification-trigger"
+          data-action="notification-trigger#showInsufficientCreditsError">
+          Show Insufficient Credits Error
+        </button>
+        
+        <button
+          class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded"
+          data-controller="notification-trigger"
+          data-action="notification-trigger#showPermissionsError">
+          Show Permissions Error
+        </button>
+      </div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold mb-4">Success Notifications</h2>
+      
+      <div class="space-y-4">
+        <button
+          class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded"
+          data-controller="notification-trigger"
+          data-action="notification-trigger#showCreditsAddedSuccess">
+          Show Credits Added Success
+        </button>
+        
+        <button
+          class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded"
+          data-controller="notification-trigger"
+          data-action="notification-trigger#showCallCompletedSuccess">
+          Show Call Completed Success
+        </button>
+        
+        <button
+          class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded"
+          data-controller="notification-trigger"
+          data-action="notification-trigger#showSettingsUpdatedSuccess">
+          Show Settings Updated Success
+        </button>
+      </div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold mb-4">Loading States</h2>
+      
+      <div class="mb-6">
+        <h3 class="text-lg font-medium mb-2">Skeleton Loaders</h3>
+        <div class="space-y-4">
+          <div>
+            <p class="text-sm text-gray-600 mb-2">Dialer Skeleton:</p>
+            <%= render_skeleton_loader('dialer') %>
+          </div>
+          
+          <div>
+            <p class="text-sm text-gray-600 mb-2">Country Selector Skeleton:</p>
+            <%= render_skeleton_loader('country_selector') %>
+          </div>
+          
+          <div>
+            <p class="text-sm text-gray-600 mb-2">Credits Update Skeleton:</p>
+            <%= render_skeleton_loader('credit_update') %>
+          </div>
+          
+          <div>
+            <p class="text-sm text-gray-600 mb-2">Generic Skeleton:</p>
+            <%= render_skeleton_loader(nil, '', 5, 8) %>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <h3 class="text-lg font-medium mb-2">Call Connecting</h3>
+        <%= render_call_connecting_loader %>
+      </div>
+    </div>
+  </div>
+</div> 

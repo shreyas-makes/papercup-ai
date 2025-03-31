@@ -34,6 +34,9 @@ Rails.application.routes.draw do
   get 'dialer/test', to: 'dialer#test', as: 'dialer_test'
   resources :credits, only: [:index]
   resources :call_history, only: [:index]
+  
+  # Notifications test page
+  resources :notifications, only: [:index]
 
   # Static pages
   get 'privacy', to: 'pages#privacy'
