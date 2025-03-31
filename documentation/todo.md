@@ -112,18 +112,18 @@ This checklist covers all aspects of implementing the Papercup browser-based int
   - [ ] Style confirmation state
 
 ### Notifications & Errors
-- [ ] Implement low balance warning
-  - [ ] Create persistent banner
-  - [ ] Style with yellow background
-  - [ ] Add dismiss button
-- [ ] Build error notifications
-  - [ ] Create toast component
-  - [ ] Add different styles by severity
-  - [ ] Implement auto-dismiss
-- [ ] Add loading states
-  - [ ] Create skeleton loaders
-  - [ ] Implement spinner animations
-  - [ ] Add disabled states for buttons
+- [x] Implement low balance warning
+  - [x] Create persistent banner
+  - [x] Style with yellow background
+  - [x] Add dismiss button
+- [x] Build error notifications
+  - [x] Create toast component
+  - [x] Add different styles by severity
+  - [x] Implement auto-dismiss
+- [x] Add loading states
+  - [x] Create skeleton loaders
+  - [x] Implement spinner animations
+  - [x] Add disabled states for buttons
 
 ## Backend Implementation
 
