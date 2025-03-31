@@ -1,69 +1,75 @@
 import { Controller } from "@hotwired/stimulus"
+import { historyApi } from "../services/mockApi"
 
 export default class extends Controller {
   static targets = ["list", "emptyState", "template"]
-
-  connect() {
-    // Mock call history data
-    this.callHistory = [
-      {
-        id: 1,
-        phoneNumber: "+1 (415) 555-2671",
-        countryCode: "US",
-        flag: "🇺🇸",
-        timestamp: this.getRelativeTime(new Date(Date.now() - 30 * 60 * 1000)), // 30 minutes ago
-        duration: "5:12",
-        status: "completed"
-      },
-      {
-        id: 2,
-        phoneNumber: "+44 20 7946 0958",
-        countryCode: "GB",
-        flag: "🇬🇧",
-        timestamp: this.getRelativeTime(new Date(Date.now() - 3 * 60 * 60 * 1000)), // 3 hours ago
-        duration: "12:03",
-        status: "completed"
-      },
-      {
-        id: 3,
-        phoneNumber: "+33 1 42 68 53 01",
-        countryCode: "FR",
-        flag: "🇫🇷",
-        timestamp: this.getRelativeTime(new Date(Date.now() - 25 * 60 * 60 * 1000)), // Yesterday
-        duration: "1:45",
-        status: "completed"
-      },
-      {
-        id: 4,
-        phoneNumber: "+81 3 1234 5678",
-        countryCode: "JP",
-        flag: "🇯🇵",
-        timestamp: this.getRelativeTime(new Date(Date.now() - 30 * 60 * 60 * 1000)), // Yesterday+
-        duration: "0:00",
-        status: "missed"
-      },
-      {
-        id: 5,
-        phoneNumber: "+49 30 1234 5678",
-        countryCode: "DE",
-        flag: "🇩🇪",
-        timestamp: this.getRelativeTime(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)), // 3 days ago
-        duration: "8:22",
-        status: "completed"
-      }
-    ]
-
-    this.renderCallHistory()
+  static values = {
+    page: { type: Number, default: 1 },
+    totalPages: { type: Number, default: 1 },
+    loading: { type: Boolean, default: false }
   }
 
-  renderCallHistory() {
-    // Sort by most recent first
-    const sortedCalls = [...this.callHistory].sort((a, b) => b.id - a.id)
+  connect() {
+    // Initial load of call history
+    this.loadCallHistory()
     
+    // Listen for call status changes to update history
+    document.addEventListener('papercup:call-status-changed', this.handleCallStatusChanged.bind(this))
+  }
+  
+  disconnect() {
+    document.removeEventListener('papercup:call-status-changed', this.handleCallStatusChanged.bind(this))
+  }
+  
+  /**
+   * Handle call status changes to refresh call history when calls end
+   */
+  handleCallStatusChanged(event) {
+    const { status } = event.detail
+    
+    // When a call ends, refresh the call history
+    if (status === 'ended') {
+      // Wait a moment for backend to update
+      setTimeout(() => {
+        this.loadCallHistory()
+      }, 500)
+    }
+  }
+
+  /**
+   * Load call history from the API
+   */
+  async loadCallHistory() {
+    if (this.loadingValue) return
+    
+    this.loadingValue = true
+    
+    try {
+      const response = await historyApi.getCalls(this.pageValue)
+      
+      // Update pagination values
+      this.totalPagesValue = response.totalPages
+      
+      // Render the calls
+      this.renderCallHistory(response.calls)
+    } catch (error) {
+      console.error("Error loading call history:", error)
+      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
+        detail: { message: "Failed to load call history" }
+      }))
+    } finally {
+      this.loadingValue = false
+    }
+  }
+
+  /**
+   * Render the call history to the UI
+   */
+  renderCallHistory(calls) {
     // Clear the list
     this.listTarget.innerHTML = ""
 
-    if (sortedCalls.length === 0) {
+    if (!calls || calls.length === 0) {
       this.listTarget.classList.add("hidden")
       this.emptyStateTarget.classList.remove("hidden")
       return
@@ -73,7 +79,7 @@ export default class extends Controller {
     this.emptyStateTarget.classList.add("hidden")
 
     // Render each call history entry
-    sortedCalls.forEach(call => {
+    calls.forEach(call => {
       const entryElement = this.templateTarget.content.cloneNode(true)
       
       const callDetails = entryElement.querySelector(".call-details")
@@ -83,16 +89,25 @@ export default class extends Controller {
       const flag = entryElement.querySelector(".country-flag")
       const entryContainer = entryElement.querySelector(".call-entry")
       
+      // Format the phone number
       phoneNumber.textContent = call.phoneNumber
-      timestamp.textContent = call.timestamp
-      flag.textContent = call.flag
       
-      // Set status-specific styling
-      if (call.status === "missed") {
-        duration.textContent = "Missed call"
-        duration.classList.add("text-error")
+      // Get relative time
+      const callTime = new Date(call.startTime)
+      timestamp.textContent = this.getRelativeTime(callTime)
+      
+      // Set the country flag (would come from a more complete implementation)
+      flag.textContent = this.getFlagEmoji(call.countryCode) || '🌐'
+      
+      // Format the duration
+      if (call.endTime) {
+        const durationSeconds = call.durationSeconds || 0
+        const minutes = Math.floor(durationSeconds / 60)
+        const seconds = durationSeconds % 60
+        duration.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`
       } else {
-        duration.textContent = call.duration
+        duration.textContent = "In progress"
+        duration.classList.add("text-blue-500")
       }
       
       // Set data attributes for redialing
@@ -103,6 +118,27 @@ export default class extends Controller {
     })
   }
 
+  /**
+   * Get the next page of call history
+   */
+  loadMoreCalls() {
+    if (this.pageValue < this.totalPagesValue) {
+      this.pageValue++
+      this.loadCallHistory()
+    }
+  }
+
+  /**
+   * Refresh the call history
+   */
+  refresh() {
+    this.pageValue = 1
+    this.loadCallHistory()
+  }
+
+  /**
+   * Redial a number from the call history
+   */
   redial(event) {
     const callDetails = event.currentTarget
     const phoneNumber = callDetails.dataset.phoneNumber
@@ -140,5 +176,32 @@ export default class extends Controller {
     } else {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     }
+  }
+  
+  /**
+   * Helper to get flag emoji from country code
+   */
+  getFlagEmoji(countryCode) {
+    if (!countryCode) return null
+    
+    // Simple mapping for common countries
+    const flagMap = {
+      'US': '🇺🇸',
+      'GB': '🇬🇧',
+      'CA': '🇨🇦',
+      'AU': '🇦🇺',
+      'FR': '🇫🇷',
+      'DE': '🇩🇪',
+      'JP': '🇯🇵',
+      'CN': '🇨🇳',
+      'IN': '🇮🇳',
+      'BR': '🇧🇷',
+      'RU': '🇷🇺',
+      'MX': '🇲🇽',
+      'ES': '🇪🇸',
+      'IT': '🇮🇹'
+    }
+    
+    return flagMap[countryCode] || null
   }
 } 

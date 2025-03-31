@@ -1,0 +1,64 @@
+<div id="login-modal" data-controller="login-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+  <div class="bg-white rounded-lg p-6 shadow-xl max-w-md w-full">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold">Sign In</h2>
+      <button data-action="login-modal#close" class="text-gray-500 hover:text-gray-700">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+    
+    <form data-action="submit->login-modal#login">
+      <div class="space-y-4">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            data-login-modal-target="email"
+            class="w-full rounded border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+            placeholder="your@email.com"
+            value="demo@example.com"
+          >
+        </div>
+        
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            data-login-modal-target="password"
+            class="w-full rounded border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+            placeholder="Your password"
+            value="demo123"
+          >
+        </div>
+        
+        <div data-login-modal-target="error" class="text-red-500 text-sm hidden"></div>
+        
+        <div class="flex justify-between items-center">
+          <div class="flex items-center">
+            <input type="checkbox" id="remember" class="rounded border-gray-300 text-blue-500 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+            <label for="remember" class="ml-2 block text-sm text-gray-700">Remember me</label>
+          </div>
+          
+          <a href="#" class="text-sm text-blue-500 hover:text-blue-700">Forgot password?</a>
+        </div>
+        
+        <div>
+          <button type="submit" class="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white rounded">
+            Sign In
+          </button>
+        </div>
+      </div>
+    </form>
+    
+    <div class="mt-4 text-center">
+      <p class="text-sm text-gray-600">
+        Don't have an account?
+        <a href="#" class="text-blue-500 hover:text-blue-700">Sign up</a>
+      </p>
+    </div>
+  </div>
+</div> 

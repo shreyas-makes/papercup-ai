@@ -23,6 +23,12 @@
   </head>
 
   <body class="bg-background">
+    <!-- Global state controller -->
+    <div data-controller="application">
+      <div data-application-target="warningContainer" class="fixed top-5 right-5 z-50"></div>
+      <div data-application-target="modalContainer"></div>
+    </div>
+    
     <%= render "shared/header" %>
     
     <main class="container mx-auto px-4 py-4">
@@ -32,5 +38,11 @@
     </main>
     
     <%= render "shared/footer" %>
+    
+    <!-- Debug panel (hidden in production) -->
+    <%= render "shared/debug_panel" %>
+    
+    <!-- Login modal -->
+    <%= render "shared/login_modal" %>
   </body>
 </html>

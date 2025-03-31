@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { authApi, callApi, creditApi } from "../services/mockApi"
 
 /**
  * Dialer controller for handling dialer functionality
@@ -14,6 +15,9 @@ export default class extends Controller {
     document.addEventListener("keydown", this.handleKeyPress.bind(this))
     // Add event listener for redial from call history
     this.element.addEventListener("call-history:redial", this.handleRedial.bind(this))
+    
+    // Listen for state updates from application controller
+    document.addEventListener('papercup:state-update', this.handleStateUpdate.bind(this))
   }
 
   disconnect() {
@@ -21,6 +25,16 @@ export default class extends Controller {
     document.removeEventListener("keydown", this.handleKeyPress.bind(this))
     // Clean up redial event listener
     this.element.removeEventListener("call-history:redial", this.handleRedial.bind(this))
+    // Clean up state update listener
+    document.removeEventListener('papercup:state-update', this.handleStateUpdate.bind(this))
+  }
+  
+  // State management
+  handleStateUpdate(event) {
+    // Store the state for later use
+    this.authenticated = event.detail.authenticated
+    this.creditBalance = event.detail.creditBalance
+    this.callStatus = event.detail.callStatus
   }
   
   // Optional: Callback when the outlet connects
@@ -135,7 +149,26 @@ export default class extends Controller {
     // Validate phone number length
     if (phoneNumber.length < 7 || phoneNumber.length > 15) {
       console.error("Invalid phone number length")
-      // TODO: Show error message to user
+      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
+        detail: { message: "Please enter a valid phone number" }
+      }))
+      return
+    }
+    
+    // Check if user is authenticated
+    if (!this.authenticated) {
+      // Show login modal
+      document.dispatchEvent(new CustomEvent('papercup:show-modal', {
+        detail: { id: 'login-modal' }
+      }))
+      return
+    }
+    
+    // Check credit balance
+    if (this.creditBalance < 1) {
+      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
+        detail: { message: "Insufficient credits to make a call. Please add more credits." }
+      }))
       return
     }
 
@@ -151,29 +184,15 @@ export default class extends Controller {
         console.error("activeCallOutlet is not connected in initiateCall")
       }
       
-      // Prepare the call data for API
-      const callData = {
-        phone_number: phoneNumber,
-        country_code: countryCode
-      }
-
-      // Make the API call to initiate the call
-      const response = await fetch('/calls', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ call: callData })
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to initiate call')
-      }
-
-      const result = await response.json()
-      console.log("Call initiated successfully:", result)
+      // Use mock API instead of actual fetch call
+      const response = await callApi.startCall(phoneNumber, countryCode)
+      
+      // Update call status in the global state
+      document.dispatchEvent(new CustomEvent('papercup:call-status-changed', {
+        detail: { status: 'active', callId: response.callId }
+      }))
+      
+      console.log("Call initiated successfully:", response)
 
     } catch (error) {
       console.error("Failed to initiate call:", error)
@@ -181,7 +200,11 @@ export default class extends Controller {
       if (this.hasActiveCallOutlet) {
         this.activeCallOutlet.endCall()
       }
-      // TODO: Show error message to user
+      
+      // Show error message to user
+      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
+        detail: { message: error.message || "Failed to initiate call" }
+      }))
     }
 
     console.log("--- dialer#initiateCall END ---")
