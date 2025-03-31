@@ -103,9 +103,10 @@ export const callApi = {
       throw new Error('Insufficient credits to make a call');
     }
 
-    if (simulateRandomFailure()) {
-      throw new Error('Failed to establish call. Please try again.');
-    }
+    // Temporarily disable random failures for testing
+    // if (simulateRandomFailure()) {
+    //   throw new Error('Failed to establish call. Please try again.');
+    // }
 
     // Generate a new call ID
     const callId = 'call-' + Date.now();

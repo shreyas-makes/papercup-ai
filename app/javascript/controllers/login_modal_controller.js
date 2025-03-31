@@ -73,6 +73,14 @@ export default class extends Controller {
         }
       }))
       
+      // Dispatch login success event for any listeners (like pending calls)
+      document.dispatchEvent(new CustomEvent('papercup:login-success', {
+        detail: {
+          user: response.user,
+          credits: response.credits
+        }
+      }))
+      
       // Show success message
       document.dispatchEvent(new CustomEvent('papercup:show-notification', {
         detail: {

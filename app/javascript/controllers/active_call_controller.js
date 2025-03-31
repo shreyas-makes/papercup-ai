@@ -67,7 +67,7 @@ export default class extends Controller {
    * @param {string} countryCode - The country code
    */
   async startCall(phoneNumber, countryCode) {
-    console.log("startCall called with:", phoneNumber, countryCode)
+    console.log("### ACTIVE CALL - startCall called with:", phoneNumber, countryCode)
     this.phoneNumberValue = phoneNumber
     this.countryCodeValue = countryCode
     
@@ -79,7 +79,7 @@ export default class extends Controller {
     
     // Show the call overlay
     if (this.hasOverlayTarget) {
-      console.log("Showing overlay")
+      console.log("### ACTIVE CALL - Showing overlay")
       // Make the overlay visible
       this.overlayTarget.classList.remove("hidden")
       // Trigger fade-in animation
@@ -87,7 +87,7 @@ export default class extends Controller {
         this.overlayTarget.classList.add("opacity-100")
       }, 10)
     } else {
-      console.error("overlay target not found")
+      console.error("### ACTIVE CALL - overlay target not found")
     }
     
     // Start with connecting state
@@ -122,8 +122,12 @@ export default class extends Controller {
         }))
       } catch (error) {
         console.error("Error ending call:", error)
-        document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-          detail: { message: error.message || "Error ending call" }
+        document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+          detail: { 
+            type: 'error',
+            title: 'Call Error',
+            message: error.message || "Error ending call" 
+          }
         }))
       }
     }
@@ -231,15 +235,23 @@ export default class extends Controller {
           
           // Check for low balance
           if (response.credits < 2) {
-            document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-              detail: { message: "Your credit balance is getting low. The call will end when you run out of credits." }
+            document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+              detail: { 
+                type: 'warning',
+                title: 'Low Balance',
+                message: "Your credit balance is getting low. The call will end when you run out of credits." 
+              }
             }))
           }
           
           // End call if credits are depleted
           if (response.credits <= 0) {
-            document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-              detail: { message: "Call ended: You've run out of credits." }
+            document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+              detail: { 
+                type: 'warning',
+                title: 'Call Ended',
+                message: "Call ended: You've run out of credits." 
+              }
             }))
             this.endCall()
           }

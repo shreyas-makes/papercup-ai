@@ -4,7 +4,9 @@
 <div class="flex flex-col lg:flex-row gap-8">
   <!-- Left Column: Dialer UI -->
   <div class="w-full lg:w-1/2 xl:w-1/3">
-    <div class="max-w-md mx-auto bg-secondary rounded-lg shadow-lg overflow-hidden" data-controller="dialer active-call">
+    <div class="max-w-md mx-auto bg-secondary rounded-lg shadow-lg overflow-hidden" 
+         data-controller="dialer"
+         id="dialer-main-container">
       <!-- Dialer header -->
       <div class="bg-primary text-secondary py-4 px-6">
         <h1 class="text-2xl font-semibold">Dialer</h1>
@@ -109,6 +111,8 @@
       
       <!-- Active Call Screen Overlay -->
       <div class="absolute inset-0 z-[9999] bg-white rounded-lg shadow-lg opacity-0 transition-opacity duration-200 hidden flex flex-col items-center justify-center"
+           data-controller="active-call"
+           data-dialer-active-call-outlet
            data-active-call-target="overlay">
         <!-- Call Information -->
         <div class="px-6 text-center">

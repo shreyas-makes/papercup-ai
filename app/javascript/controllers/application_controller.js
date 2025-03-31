@@ -9,7 +9,8 @@ export default class extends Controller {
   static values = {
     authenticated: { type: Boolean, default: false },
     credits: { type: Number, default: 0 },
-    callInProgress: { type: Boolean, default: false }
+    callInProgress: { type: Boolean, default: false },
+    callStatus: { type: String, default: 'idle' }
   }
   
   static targets = ["notificationContainer"]
@@ -20,13 +21,19 @@ export default class extends Controller {
     document.addEventListener('papercup:logout', this.handleLogout.bind(this))
     document.addEventListener('papercup:call-started', this.handleCallStarted.bind(this))
     document.addEventListener('papercup:call-ended', this.handleCallEnded.bind(this))
+    document.addEventListener('papercup:call-status-changed', this.handleCallStatusChanged.bind(this))
     document.addEventListener('papercup:credits-updated', this.handleCreditsUpdated.bind(this))
     document.addEventListener('papercup:show-notification', this.handleShowNotification.bind(this))
+    document.addEventListener('papercup:show-modal', this.handleShowModal.bind(this))
+    document.addEventListener('papercup:hide-modal', this.handleHideModal.bind(this))
     
     // Check initial auth state
     this.checkAuthState()
     
-    console.log("Application controller connected")
+    console.log("Application controller connected", this.element)
+    
+    // Broadcast initial state for other controllers
+    this.broadcastState()
   }
   
   disconnect() {
@@ -34,8 +41,24 @@ export default class extends Controller {
     document.removeEventListener('papercup:logout', this.handleLogout.bind(this))
     document.removeEventListener('papercup:call-started', this.handleCallStarted.bind(this))
     document.removeEventListener('papercup:call-ended', this.handleCallEnded.bind(this))
+    document.removeEventListener('papercup:call-status-changed', this.handleCallStatusChanged.bind(this))
     document.removeEventListener('papercup:credits-updated', this.handleCreditsUpdated.bind(this))
     document.removeEventListener('papercup:show-notification', this.handleShowNotification.bind(this))
+    document.removeEventListener('papercup:show-modal', this.handleShowModal.bind(this))
+    document.removeEventListener('papercup:hide-modal', this.handleHideModal.bind(this))
+  }
+  
+  /**
+   * Broadcast state to other controllers
+   */
+  broadcastState() {
+    document.dispatchEvent(new CustomEvent('papercup:state-update', {
+      detail: {
+        authenticated: this.authenticatedValue,
+        creditBalance: this.creditsValue,
+        callStatus: this.callStatusValue
+      }
+    }))
   }
   
   /**
@@ -47,6 +70,9 @@ export default class extends Controller {
       console.log("Auth state:", authenticated, credits)
       this.authenticatedValue = authenticated
       this.creditsValue = credits
+      
+      // Broadcast updated state
+      this.broadcastState()
     } catch (error) {
       console.error('Failed to check auth state:', error)
     }
@@ -59,6 +85,9 @@ export default class extends Controller {
     console.log("Login event:", event.detail)
     this.authenticatedValue = true
     this.creditsValue = event.detail.credits
+    
+    // Broadcast updated state
+    this.broadcastState()
   }
   
   /**
@@ -68,6 +97,10 @@ export default class extends Controller {
     console.log("Logout event")
     this.authenticatedValue = false
     this.creditsValue = 0
+    this.callStatusValue = 'idle'
+    
+    // Broadcast updated state
+    this.broadcastState()
   }
   
   /**
@@ -75,6 +108,10 @@ export default class extends Controller {
    */
   handleCallStarted() {
     this.callInProgressValue = true
+    this.callStatusValue = 'active'
+    
+    // Broadcast updated state
+    this.broadcastState()
   }
   
   /**
@@ -82,6 +119,26 @@ export default class extends Controller {
    */
   handleCallEnded() {
     this.callInProgressValue = false
+    this.callStatusValue = 'ended'
+    
+    // Broadcast updated state
+    this.broadcastState()
+  }
+  
+  /**
+   * Handle call status changed
+   */
+  handleCallStatusChanged(event) {
+    this.callStatusValue = event.detail.status
+    
+    if (event.detail.status === 'active') {
+      this.callInProgressValue = true
+    } else if (event.detail.status === 'ended' || event.detail.status === 'idle') {
+      this.callInProgressValue = false
+    }
+    
+    // Broadcast updated state
+    this.broadcastState()
   }
   
   /**
@@ -91,9 +148,12 @@ export default class extends Controller {
     this.creditsValue = event.detail.credits
     
     // Show low balance warning if credits are below threshold
-    if (this.creditsValue < 100) {
+    if (this.creditsValue < 10) {
       this.showLowBalanceWarning()
     }
+    
+    // Broadcast updated state
+    this.broadcastState()
   }
   
   /**
@@ -212,5 +272,54 @@ export default class extends Controller {
    */
   callInProgressValueChanged(value) {
     document.body.classList.toggle('call-in-progress', value)
+  }
+  
+  /**
+   * Call status value changed
+   */
+  callStatusValueChanged(value) {
+    console.log("Call status changed:", value)
+    document.body.dataset.callStatus = value
+  }
+  
+  /**
+   * Handle showing a modal
+   */
+  handleShowModal(event) {
+    const { id } = event.detail
+    console.log("Show modal:", id)
+    
+    // Find modal by ID and show it
+    const modal = document.getElementById(id)
+    if (modal && modal.dataset.controller) {
+      // Get the controller name
+      const controllerName = modal.dataset.controller
+      
+      // Find a method to call directly
+      if (controllerName === 'login-modal') {
+        // Find the controller instance
+        const controller = this.application.getControllerForElementAndIdentifier(modal, controllerName)
+        if (controller && typeof controller.open === 'function') {
+          controller.open()
+        }
+      }
+    }
+  }
+  
+  /**
+   * Handle hiding a modal
+   */
+  handleHideModal() {
+    console.log("Hide modal")
+    
+    // Find all modal elements
+    const modals = document.querySelectorAll('[data-controller$="-modal"]')
+    modals.forEach(modal => {
+      const controllerName = modal.dataset.controller
+      const controller = this.application.getControllerForElementAndIdentifier(modal, controllerName)
+      if (controller && typeof controller.close === 'function') {
+        controller.close()
+      }
+    })
   }
 } 

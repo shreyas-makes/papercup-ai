@@ -35,6 +35,15 @@ export default class extends Controller {
     this.authenticated = event.detail.authenticated
     this.creditBalance = event.detail.creditBalance
     this.callStatus = event.detail.callStatus
+    
+    // If we just became authenticated and have a pending call
+    if (this.authenticated !== event.detail.authenticated && event.detail.authenticated) {
+      const pendingCall = localStorage.getItem('pending_call')
+      if (pendingCall) {
+        const { phoneNumber, countryCode } = JSON.parse(pendingCall)
+        this._executeCall(phoneNumber, countryCode)
+      }
+    }
   }
   
   // Optional: Callback when the outlet connects
@@ -145,18 +154,50 @@ export default class extends Controller {
 
     // Get the phone number from the input
     const phoneNumber = this.inputTarget.value.replace(/\D/g, "")
+    const countryCode = this.element.querySelector('[data-country-selector-target="selectedCode"]')?.textContent || ""
     
     // Validate phone number length
     if (phoneNumber.length < 7 || phoneNumber.length > 15) {
       console.error("Invalid phone number length")
-      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-        detail: { message: "Please enter a valid phone number" }
+      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+        detail: { 
+          type: 'warning',
+          title: 'Invalid Number',
+          message: "Please enter a valid phone number" 
+        }
       }))
       return
     }
     
+    // Check if user is authenticated directly from localStorage
+    const isAuthenticated = localStorage.getItem('papercup_auth') === 'true';
+    
     // Check if user is authenticated
-    if (!this.authenticated) {
+    if (!isAuthenticated) {
+      // Store pending call data
+      localStorage.setItem('papercup_pending_call', JSON.stringify({
+        phoneNumber,
+        countryCode,
+        timestamp: Date.now()
+      }));
+      
+      // Listen for login event once
+      const loginSuccessHandler = async () => {
+        document.removeEventListener('papercup:login-success', loginSuccessHandler);
+        
+        // Get the pending call data
+        const pendingCallData = localStorage.getItem('papercup_pending_call');
+        if (pendingCallData) {
+          const pendingCall = JSON.parse(pendingCallData);
+          localStorage.removeItem('papercup_pending_call');
+          
+          // Execute the call
+          await this.executeCall(pendingCall.phoneNumber, pendingCall.countryCode);
+        }
+      };
+      
+      document.addEventListener('papercup:login-success', loginSuccessHandler);
+      
       // Show login modal
       document.dispatchEvent(new CustomEvent('papercup:show-modal', {
         detail: { id: 'login-modal' }
@@ -164,50 +205,70 @@ export default class extends Controller {
       return
     }
     
+    // Get credit balance from localStorage
+    const creditBalance = parseFloat(localStorage.getItem('papercup_mock_credits') || '0');
+    
     // Check credit balance
-    if (this.creditBalance < 1) {
-      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-        detail: { message: "Insufficient credits to make a call. Please add more credits." }
+    if (creditBalance < 1) {
+      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+        detail: { 
+          type: 'warning',
+          title: 'Insufficient Credits',
+          message: "Insufficient credits to make a call. Please add more credits." 
+        }
       }))
       return
     }
+    
+    // If we get here, user is authenticated and has credits
+    await this.executeCall(phoneNumber, countryCode);
+  }
 
+  /**
+   * Execute the call after all validations pass
+   * @param {string} phoneNumber - The phone number to call
+   * @param {string} countryCode - The country code
+   */
+  async executeCall(phoneNumber, countryCode) {
     try {
-      // Get the selected country code from the country selector
-      const countryCode = this.element.querySelector('[data-country-selector-target="selectedCode"]').textContent
-      const formattedNumber = this.inputTarget.value
+      console.log("Executing call to:", phoneNumber, countryCode)
       
-      // Using the active-call controller to handle the call UI
+      // 1. Show the call interface
       if (this.hasActiveCallOutlet) {
-        this.activeCallOutlet.startCall(formattedNumber, countryCode)
+        console.log("Starting call in UI")
+        this.activeCallOutlet.startCall(phoneNumber, countryCode)
       } else {
-        console.error("activeCallOutlet is not connected in initiateCall")
+        console.error("activeCallOutlet is not available")
       }
       
-      // Use mock API instead of actual fetch call
+      // 2. Use mock API to start the call
+      console.log("Calling API to start call")
       const response = await callApi.startCall(phoneNumber, countryCode)
+      console.log("Call API response:", response)
       
-      // Update call status in the global state
+      // 3. Update call status in global state
       document.dispatchEvent(new CustomEvent('papercup:call-status-changed', {
         detail: { status: 'active', callId: response.callId }
       }))
       
       console.log("Call initiated successfully:", response)
-
+      
     } catch (error) {
-      console.error("Failed to initiate call:", error)
-      // End the call UI if there was an API error
+      console.error("Error initiating call:", error)
+      
+      // Hide the call UI if it was shown
       if (this.hasActiveCallOutlet) {
-        this.activeCallOutlet.endCall()
+        this.activeCallOutlet.hideCallScreen()
       }
       
-      // Show error message to user
-      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-        detail: { message: error.message || "Failed to initiate call" }
+      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+        detail: { 
+          type: 'error',
+          title: 'Call Failed',
+          message: error.message || "Failed to initiate call" 
+        }
       }))
     }
-
-    console.log("--- dialer#initiateCall END ---")
   }
 
   /**
