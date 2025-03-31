@@ -17,18 +17,12 @@
     <!-- app styles -->
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
 
     <%= render "shared/script_tags" if defined?(render_script_tags) %>
   </head>
 
-  <body class="bg-background">
-    <!-- Global state controller -->
-    <div data-controller="application">
-      <div data-application-target="warningContainer" class="fixed top-5 right-5 z-50"></div>
-      <div data-application-target="modalContainer"></div>
-    </div>
-    
+  <body class="bg-background" data-controller="application">
     <%= render "shared/header" %>
     
     <main class="container mx-auto px-4 py-4">
@@ -39,8 +33,47 @@
     
     <%= render "shared/footer" %>
     
+    <!-- Global notification container -->
+    <div data-application-target="notificationContainer" class="fixed top-4 right-4 z-50 w-96 hidden">
+      <div class="flex items-start gap-4 p-4 rounded-lg shadow-lg bg-white">
+        <!-- Icon container -->
+        <div data-notification-type class="flex-shrink-0 w-6 h-6">
+          <!-- Success icon (checkmark) -->
+          <svg data-success-icon class="hidden w-6 h-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          
+          <!-- Warning icon (exclamation) -->
+          <svg data-warning-icon class="hidden w-6 h-6 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          
+          <!-- Error icon (x-circle) -->
+          <svg data-error-icon class="hidden w-6 h-6 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        
+        <!-- Content -->
+        <div class="flex-1">
+          <h3 data-notification-title class="text-sm font-medium text-gray-900"></h3>
+          <p data-notification-message class="mt-1 text-sm text-gray-500"></p>
+        </div>
+        
+        <!-- Close button -->
+        <button type="button" data-action="application#hideNotification" class="flex-shrink-0 text-gray-400 hover:text-gray-500">
+          <span class="sr-only">Close</span>
+          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    
     <!-- Debug panel (hidden in production) -->
-    <%= render "shared/debug_panel" %>
+    <% unless Rails.env.production? %>
+      <%= render "shared/debug_panel" %>
+    <% end %>
     
     <!-- Login modal -->
     <%= render "shared/login_modal" %>

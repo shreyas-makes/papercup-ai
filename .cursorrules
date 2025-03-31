@@ -6,6 +6,7 @@
 - Maximum line length of 100 characters
 - Include typed parameters where possible
 - Always include docstring comments for methods with complex logic
+- for running the rails app, always use `bin/dev`
 
 ## Frontend Rules
 - Use Work Sans font family for all UI components

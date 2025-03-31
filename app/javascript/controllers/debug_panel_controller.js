@@ -47,8 +47,11 @@ export default class extends Controller {
     const amount = parseFloat(this.creditInputTarget.value)
     
     if (isNaN(amount) || amount < 0) {
-      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-        detail: { message: "Please enter a valid credit amount" }
+      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+        detail: { 
+          type: 'warning',
+          message: "Please enter a valid credit amount" 
+        }
       }))
       return
     }
@@ -61,8 +64,12 @@ export default class extends Controller {
         detail: { credits: result.newBalance }
       }))
       
-      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-        detail: { message: `Credit balance set to $${result.newBalance.toFixed(2)}` }
+      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+        detail: { 
+          type: 'success',
+          title: 'Credits Updated',
+          message: `Credit balance set to $${result.newBalance.toFixed(2)}` 
+        }
       }))
     } catch (error) {
       console.error("Error setting credits:", error)
@@ -81,8 +88,12 @@ export default class extends Controller {
       // Refresh call history controllers
       document.dispatchEvent(new CustomEvent('papercup:call-history-reset'))
       
-      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-        detail: { message: "Call history has been reset" }
+      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+        detail: { 
+          type: 'info',
+          title: 'History Reset',
+          message: "Call history has been reset" 
+        }
       }))
     } catch (error) {
       console.error("Error resetting calls:", error)
@@ -101,8 +112,12 @@ export default class extends Controller {
       await debugApi.triggerError(errorType)
     } catch (error) {
       // This will always trigger an error - that's the point
-      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-        detail: { message: error.message }
+      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+        detail: { 
+          type: 'error',
+          title: 'Test Error',
+          message: error.message 
+        }
       }))
     }
   }
@@ -121,8 +136,12 @@ export default class extends Controller {
       
       document.dispatchEvent(new CustomEvent('papercup:logout'))
       
-      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-        detail: { message: "Logged out successfully" }
+      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+        detail: { 
+          type: 'info',
+          title: 'Logged Out',
+          message: "Logged out successfully" 
+        }
       }))
     } else {
       // Log in
@@ -136,12 +155,19 @@ export default class extends Controller {
           }
         }))
         
-        document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-          detail: { message: "Logged in successfully" }
+        document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+          detail: { 
+            type: 'success',
+            title: 'Logged In',
+            message: "Logged in successfully" 
+          }
         }))
       } catch (error) {
-        document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-          detail: { message: error.message }
+        document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+          detail: { 
+            type: 'error',
+            message: error.message 
+          }
         }))
       }
     }
@@ -162,13 +188,20 @@ export default class extends Controller {
         detail: { credits: result.newBalance }
       }))
       
-      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-        detail: { message: `Added $${amount.toFixed(2)} credits. New balance: $${result.newBalance.toFixed(2)}` }
+      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+        detail: { 
+          type: 'success',
+          title: 'Credits Added',
+          message: `Added $${amount.toFixed(2)} credits. New balance: $${result.newBalance.toFixed(2)}` 
+        }
       }))
     } catch (error) {
       console.error("Error adding credits:", error)
-      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-        detail: { message: error.message }
+      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+        detail: { 
+          type: 'error',
+          message: error.message 
+        }
       }))
     }
   }

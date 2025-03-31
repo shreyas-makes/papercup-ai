@@ -74,14 +74,26 @@ export default class extends Controller {
       }))
       
       // Show success message
-      document.dispatchEvent(new CustomEvent('papercup:show-warning', {
-        detail: { message: "Successfully logged in!" }
+      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+        detail: {
+          type: 'success',
+          title: 'Welcome back!',
+          message: "You've successfully logged in"
+        }
       }))
       
       // Close the modal
       this.close()
     } catch (error) {
       this.showError(error.message || "Login failed. Please try again.")
+      
+      // Show error notification
+      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+        detail: {
+          type: 'error',
+          message: error.message || "Login failed. Please try again."
+        }
+      }))
     }
   }
   
