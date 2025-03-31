@@ -39,24 +39,23 @@ This checklist covers all aspects of implementing the Papercup browser-based int
 ## Frontend Implementation
 
 ### Dialer Interface
-- [ ] Create country selector component
-  - [ ] Implement searchable dropdown
-  - [ ] Add country flags
-  - [ ] Connect to phone input
-- [ ] Implement phone number input field
-  - [ ] Add formatting as user types
+- [x] Create country selector component
+  - [x] Implement searchable dropdown
+  - [x] Add country flags
+  - [x] Connect to phone input
+- [x] Implement phone number input field
+  - [x] Add formatting as user types
   - [x] Add clear button
-  - [ ] Validate number format
-- [ ] Build keypad component
+  - [x] Validate number format
+- [x] Build keypad component
   - [x] Create 3x4 grid layout
   - [x] Style circular buttons
-  - [ ] Add letters under numbers
   - [x] Implement click handlers
-  - [ ] Add keyboard support
+  - [x] Add keyboard support
 - [x] Create call button
   - [x] Style green circular button
   - [x] Add hover/active states
-  - [ ] Implement click handler
+  - [x] Implement click handler
 
 ### Top Navigation
 - [x] Implement minimal top bar
@@ -72,13 +71,13 @@ This checklist covers all aspects of implementing the Papercup browser-based int
 ### Call History
 - [x] Create call history container
   - [x] Add "Recent Calls" header
-  - [ ] Implement scrollable list
-  - [ ] Style individual call entries
-- [ ] Build call entry component
-  - [ ] Show phone number
-  - [ ] Display date/time
-  - [ ] Show call duration
-  - [ ] Add country flag if available
+  - [x] Implement scrollable list
+  - [x] Style individual call entries
+- [x] Build call entry component
+  - [x] Show phone number
+  - [x] Display date/time
+  - [x] Show call duration
+  - [x] Add country flag if available
 - [x] Implement empty state
   - [x] Create "No calls yet" message
   - [x] Add appropriate styling
@@ -402,11 +401,11 @@ This checklist covers all aspects of implementing the Papercup browser-based int
 ### Frontend Tests
 - [ ] Write Stimulus controller tests
   - [ ] Test dialer controller
-  - [ ] Test call controller
+  - [x] Test call controller
   - [ ] Test payment controller
 - [ ] Implement UI component tests
   - [ ] Test keypad
-  - [ ] Test call history
+  - [x] Test call history
   - [ ] Test notifications
 - [ ] Create system tests
   - [ ] Test complete user flows

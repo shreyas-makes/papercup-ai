@@ -10,11 +10,61 @@ export default class extends Controller {
 
   connect() {
     console.log("Dialer controller connected", this.element)
+    // Add keyboard event listener
+    document.addEventListener("keydown", this.handleKeyPress.bind(this))
+    // Add event listener for redial from call history
+    this.element.addEventListener("call-history:redial", this.handleRedial.bind(this))
+  }
+
+  disconnect() {
+    // Clean up keyboard event listener
+    document.removeEventListener("keydown", this.handleKeyPress.bind(this))
+    // Clean up redial event listener
+    this.element.removeEventListener("call-history:redial", this.handleRedial.bind(this))
   }
   
   // Optional: Callback when the outlet connects
   phoneInputOutletConnected(outlet, element) {
     console.log("Phone input outlet connected:", outlet, element)
+  }
+
+  /**
+   * Handle keyboard events for the dialer
+   * @param {KeyboardEvent} event - The keyboard event
+   */
+  handleKeyPress(event) {
+    // Only handle if the input is focused
+    if (!this.inputTarget.matches(':focus')) return
+
+    const key = event.key
+    
+    // Handle number keys (0-9)
+    if (/^[0-9]$/.test(key)) {
+      event.preventDefault()
+      this.simulateKeyPress(key)
+    }
+    // Handle special keys (*, #)
+    else if (key === '*' || key === '#') {
+      event.preventDefault()
+      this.simulateKeyPress(key)
+    }
+  }
+
+  /**
+   * Simulate a key press by creating a synthetic event
+   * @param {string} key - The key to simulate
+   */
+  simulateKeyPress(key) {
+    // Create a synthetic event
+    const event = new Event('click', { bubbles: true })
+    // Find the corresponding button
+    const button = this.element.querySelector(`[data-dialer-key="${key}"]`)
+    if (button) {
+      // Add the key to the button's dataset
+      button.dataset.dialerKey = key
+      // Trigger the click event
+      button.dispatchEvent(event)
+    }
   }
 
   /**
@@ -64,5 +114,97 @@ export default class extends Controller {
     } else {
       console.error("phoneInputOutlet is not connected in clear")
     }
+  }
+
+  /**
+   * Initiate a call with the entered phone number
+   * @param {Event} event - The click event
+   */
+  async initiateCall(event) {
+    event.preventDefault()
+    console.log("--- dialer#initiateCall START ---")
+
+    // Get the phone number from the input
+    const phoneNumber = this.inputTarget.value.replace(/\D/g, "")
+    
+    // Validate phone number length
+    if (phoneNumber.length < 7 || phoneNumber.length > 15) {
+      console.error("Invalid phone number length")
+      // TODO: Show error message to user
+      return
+    }
+
+    try {
+      // Get the selected country code from the country selector
+      const countryCode = this.element.querySelector('[data-country-selector-target="selectedCode"]').textContent
+      
+      // Prepare the call data
+      const callData = {
+        phone_number: phoneNumber,
+        country_code: countryCode
+      }
+
+      // Make the API call to initiate the call
+      const response = await fetch('/calls', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ call: callData })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to initiate call')
+      }
+
+      const result = await response.json()
+      console.log("Call initiated successfully:", result)
+      
+      // TODO: Show call screen overlay
+      // TODO: Update call status
+      // TODO: Handle call events
+
+    } catch (error) {
+      console.error("Failed to initiate call:", error)
+      // TODO: Show error message to user
+    }
+
+    console.log("--- dialer#initiateCall END ---")
+  }
+
+  /**
+   * Handle redial event from call history
+   * @param {CustomEvent} event - The redial event with phone number details
+   */
+  handleRedial(event) {
+    console.log("--- dialer#handleRedial START ---")
+    const { phoneNumber, countryCode } = event.detail
+    
+    // Set the phone number in the input field
+    this.inputTarget.value = phoneNumber
+    
+    // Find the country selector and update it if available
+    const countrySelector = document.querySelector('[data-controller="country-selector"]')
+    if (countrySelector) {
+      const countrySelectorController = this.application.getControllerForElementAndIdentifier(
+        countrySelector, 
+        "country-selector"
+      )
+      
+      if (countrySelectorController && typeof countrySelectorController.selectCountryByCode === 'function') {
+        countrySelectorController.selectCountryByCode(countryCode)
+      }
+    }
+    
+    // Update validation via phone-input outlet
+    if (this.hasPhoneInputOutlet) {
+      this.phoneInputOutlet.handleInput()
+    }
+    
+    // Focus the input field
+    this.inputTarget.focus()
+    console.log("--- dialer#handleRedial END ---")
   }
 } 

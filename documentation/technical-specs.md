@@ -472,7 +472,6 @@ end
   - Small Text/Labels: 14px, 400 weight
   - Button Text: 16px, 600 weight
   - Dialer Numbers: 32px, 600 weight
-  - Letters under numbers: 12px, 400 weight
 
 ### Color Palette
 - Primary: Black (#000000)
@@ -485,12 +484,17 @@ end
 
 ### Layout Specifications
 #### Dialer Keypad
-- Grid: 3x4
-- Button size: 64px x 64px
-- Gap between buttons: 16px
-- Padding inside buttons: 12px
-- Border radius: 32px
-- Container max width: 320px
+- Grid: 3x4 (implemented with Tailwind grid-cols-3)
+- Button size: Auto with padding (py-4)
+- Gap between buttons: 8px (gap-2)
+- Container padding: 24px (p-6)
+- Button styling:
+  - Background: Light gray (#F5F5F5)
+  - Hover: Slightly darker (#EEEEEE)
+  - Active: Scale transform (0.95)
+  - Text: 24px (text-2xl), medium weight
+  - Shadow: Light (shadow-sm)
+  - Border radius: 8px (rounded-lg)
 
 #### Call Button
 - Shape: Circular

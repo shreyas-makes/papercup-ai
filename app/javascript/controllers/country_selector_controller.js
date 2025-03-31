@@ -158,4 +158,18 @@ export default class extends Controller {
   }
 
   // Removed formatPhoneNumber() as it wasn't fully implemented and might be better handled by phone-input controller
+
+  /**
+   * Select a country by country code (for integration with call history)
+   * @param {String} countryCode - The two-letter country code
+   */
+  selectCountryByCode(countryCode) {
+    if (!countryCode) return
+    
+    // Convert to uppercase for consistency
+    countryCode = countryCode.toUpperCase()
+    
+    // Use existing selectCountry method with string param
+    this.selectCountry(countryCode)
+  }
 }
