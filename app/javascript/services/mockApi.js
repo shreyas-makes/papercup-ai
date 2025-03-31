@@ -32,6 +32,11 @@ const initializeMockData = () => {
   if (!localStorage.getItem('papercup_mock_calls')) {
     localStorage.setItem('papercup_mock_calls', JSON.stringify([]));
   }
+  
+  // Initialize authentication state if not set
+  if (localStorage.getItem('papercup_auth') === null) {
+    localStorage.setItem('papercup_auth', 'false');
+  }
 };
 
 // Initialize on module load
@@ -39,6 +44,18 @@ initializeMockData();
 
 // Authentication APIs
 export const authApi = {
+  checkAuth: async () => {
+    await delay();
+    
+    const isAuthenticated = localStorage.getItem('papercup_auth') === 'true';
+    const credits = parseFloat(localStorage.getItem('papercup_mock_credits') || '0');
+    
+    return {
+      authenticated: isAuthenticated,
+      credits: isAuthenticated ? credits : 0
+    };
+  },
+  
   login: async (email, password) => {
     await delay();
     
@@ -48,6 +65,9 @@ export const authApi = {
 
     const user = JSON.parse(localStorage.getItem('papercup_mock_user'));
     const credits = parseFloat(localStorage.getItem('papercup_mock_credits'));
+    
+    // Set auth state to true
+    localStorage.setItem('papercup_auth', 'true');
     
     return {
       success: true,
@@ -59,6 +79,8 @@ export const authApi = {
 
   logout: async () => {
     await delay();
+    // Set auth state to false
+    localStorage.setItem('papercup_auth', 'false');
     return { success: true };
   },
 

@@ -20,6 +20,8 @@ export default class extends Controller {
     
     // Add keyboard shortcut (Shift+Ctrl+D) to toggle panel
     document.addEventListener('keydown', this.handleKeyDown.bind(this))
+    
+    console.log("Debug panel controller connected")
   }
   
   disconnect() {
@@ -127,12 +129,15 @@ export default class extends Controller {
    */
   async toggleAuth(event) {
     event.preventDefault()
+    console.log("Toggle auth clicked")
     
     const isAuthenticated = localStorage.getItem('papercup_auth') === 'true'
+    console.log("Current auth state:", isAuthenticated)
     
     if (isAuthenticated) {
       // Log out
       await authApi.logout()
+      console.log("Logged out")
       
       document.dispatchEvent(new CustomEvent('papercup:logout'))
       
@@ -147,6 +152,7 @@ export default class extends Controller {
       // Log in
       try {
         const response = await authApi.login('test@example.com', 'password')
+        console.log("Logged in", response)
         
         document.dispatchEvent(new CustomEvent('papercup:login', {
           detail: {

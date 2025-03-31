@@ -25,6 +25,8 @@ export default class extends Controller {
     
     // Check initial auth state
     this.checkAuthState()
+    
+    console.log("Application controller connected")
   }
   
   disconnect() {
@@ -42,6 +44,7 @@ export default class extends Controller {
   async checkAuthState() {
     try {
       const { authenticated, credits } = await authApi.checkAuth()
+      console.log("Auth state:", authenticated, credits)
       this.authenticatedValue = authenticated
       this.creditsValue = credits
     } catch (error) {
@@ -53,6 +56,7 @@ export default class extends Controller {
    * Handle successful login
    */
   handleLogin(event) {
+    console.log("Login event:", event.detail)
     this.authenticatedValue = true
     this.creditsValue = event.detail.credits
   }
@@ -61,6 +65,7 @@ export default class extends Controller {
    * Handle logout
    */
   handleLogout() {
+    console.log("Logout event")
     this.authenticatedValue = false
     this.creditsValue = 0
   }
@@ -109,20 +114,38 @@ export default class extends Controller {
    */
   handleShowNotification(event) {
     const { type = 'info', title, message } = event.detail
+    console.log("Show notification:", type, title, message)
     
-    // Get notification container and elements
+    // Get notification container
     const container = this.notificationContainerTarget
-    const notificationTypeEl = container.querySelector('[data-notification-type]')
-    const titleEl = container.querySelector('[data-notification-title]')
-    const messageEl = container.querySelector('[data-notification-message]')
     
-    // Hide all icons
-    notificationTypeEl.querySelectorAll('svg').forEach(icon => icon.classList.add('hidden'))
+    // Get all icon elements
+    const successIcon = container.querySelector('[data-success-icon]')
+    const warningIcon = container.querySelector('[data-warning-icon]')
+    const errorIcon = container.querySelector('[data-error-icon]')
+    const infoIcon = container.querySelector('[data-info-icon]')
     
-    // Show appropriate icon
-    const iconEl = notificationTypeEl.querySelector(`[data-${type}-icon]`)
-    if (iconEl) {
-      iconEl.classList.remove('hidden')
+    // Hide all icons first
+    successIcon.classList.add('hidden')
+    warningIcon.classList.add('hidden')
+    errorIcon.classList.add('hidden')
+    infoIcon.classList.add('hidden')
+    
+    // Show the appropriate icon based on type
+    switch(type) {
+      case 'success':
+        successIcon.classList.remove('hidden')
+        break
+      case 'warning':
+        warningIcon.classList.remove('hidden')
+        break
+      case 'error':
+        errorIcon.classList.remove('hidden')
+        break
+      case 'info':
+      default:
+        infoIcon.classList.remove('hidden')
+        break
     }
     
     // Set background color based on type
@@ -135,6 +158,10 @@ export default class extends Controller {
     
     const baseClasses = 'flex items-start gap-4 p-4 rounded-lg shadow-lg bg-white'
     container.querySelector('div').className = `${baseClasses} ${colors[type] || colors.info}`
+    
+    // Title and message
+    const titleEl = container.querySelector('[data-notification-title]')
+    const messageEl = container.querySelector('[data-notification-message]')
     
     // Set content
     if (title) {
@@ -168,6 +195,7 @@ export default class extends Controller {
    * Authenticated value changed
    */
   authenticatedValueChanged(value) {
+    console.log("Auth value changed:", value)
     document.body.classList.toggle('authenticated', value)
   }
   
@@ -175,6 +203,7 @@ export default class extends Controller {
    * Credits value changed
    */
   creditsValueChanged(value) {
+    console.log("Credits value changed:", value)
     document.body.dataset.credits = value
   }
   
