@@ -7,10 +7,11 @@ import { authApi, callApi, creditApi } from "../services/mockApi"
 export default class extends Controller {
   static targets = ["input"]
   // Define outlets for the phone-input and active-call controllers
-  static outlets = [ "phone-input", "active-call" ]
+  static outlets = [ "phone-input", "active-call", "dialer" ]
 
   connect() {
     console.log("Dialer controller connected", this.element)
+    console.log("Active call controller connected to dialer outlet:", this.hasDialerOutlet)
     // Add keyboard event listener
     document.addEventListener("keydown", this.handleKeyPress.bind(this))
     // Add event listener for redial from call history
@@ -18,6 +19,18 @@ export default class extends Controller {
     
     // Listen for state updates from application controller
     document.addEventListener('papercup:state-update', this.handleStateUpdate.bind(this))
+
+    // Manually connect to active call controller by ID
+    setTimeout(() => {
+      const activeCallEl = document.getElementById('active-call-controller');
+      if (activeCallEl) {
+        const controller = this.application.getControllerForElementAndIdentifier(activeCallEl, 'active-call');
+        if (controller) {
+          this.activeCallController = controller;
+          console.log("Manually connected to active call controller");
+        }
+      }
+    }, 100);
   }
 
   disconnect() {
@@ -54,6 +67,9 @@ export default class extends Controller {
   // Callback when active-call outlet connects
   activeCallOutletConnected(outlet, element) {
     console.log("Active call outlet connected:", outlet, element)
+    console.log("Outlet available methods:", Object.keys(outlet))
+    console.log("Outlet element:", element)
+    console.log("Outlet startCall exists:", typeof outlet.startCall === 'function')
   }
 
   /**
@@ -102,33 +118,38 @@ export default class extends Controller {
   addKey(event) {
     console.log("--- dialer#addKey START ---")
     console.log("addKey called with:", event.currentTarget.dataset.dialerKey)
-    event.preventDefault() // Prevent default button behavior
+    event.preventDefault()
 
     const key = event.currentTarget.dataset.dialerKey
     const input = this.inputTarget
     
-    // Add the key to the input value at the current cursor position
+    // Add the key to the input value
     const cursorPos = input.selectionStart || input.value.length
-    const before = input.value.substring(0, cursorPos)
-    const after = input.value.substring(cursorPos)
-    input.value = before + key + after
-    
-    // Set the cursor position after the inserted character
-    const newCursorPos = cursorPos + 1
-    input.setSelectionRange(newCursorPos, newCursorPos)
-    
-    // Force focus on the input
+    input.value = [input.value.slice(0, cursorPos), key, input.value.slice(cursorPos)].join('')
+    input.setSelectionRange(cursorPos + 1, cursorPos + 1)
     input.focus()
-    
-    // --- Use Outlet for Communication --- 
+
+    // Validate input through outlet if available
     if (this.hasPhoneInputOutlet) {
-      console.log("Calling handleInput via phoneInputOutlet")
+      console.log("Validating via phoneInputOutlet")
       this.phoneInputOutlet.handleInput()
     } else {
-      console.error("phoneInputOutlet is not connected in addKey")
+      console.warn("Phone input outlet not connected - using fallback validation")
+      this.fallbackInputValidation()
     }
-    // --- End Outlet Communication ---
     console.log("--- dialer#addKey END ---")
+  }
+
+  // Add new fallback validation method
+  fallbackInputValidation() {
+    const input = this.inputTarget
+    const isValid = input.value.length >= 7 && input.value.length <= 15
+    
+    if (!isValid) {
+      input.classList.add("border-red-500")
+    } else {
+      input.classList.remove("border-red-500")
+    }
   }
 
   /**
@@ -151,6 +172,10 @@ export default class extends Controller {
   async initiateCall(event) {
     event.preventDefault()
     console.log("--- dialer#initiateCall START ---")
+    console.log("AUTH STATE:", { 
+      localStorageAuth: localStorage.getItem('papercup_auth'),
+      authValue: localStorage.getItem('papercup_auth') === 'true'
+    })
 
     // Get the phone number from the input
     const phoneNumber = this.inputTarget.value.replace(/\D/g, "")
@@ -183,16 +208,27 @@ export default class extends Controller {
       
       // Listen for login event once
       const loginSuccessHandler = async () => {
+        console.log("LOGIN SUCCESS HANDLER TRIGGERED");
         document.removeEventListener('papercup:login-success', loginSuccessHandler);
         
         // Get the pending call data
         const pendingCallData = localStorage.getItem('papercup_pending_call');
+        console.log("Retrieved pending call data:", pendingCallData);
+        
         if (pendingCallData) {
-          const pendingCall = JSON.parse(pendingCallData);
-          localStorage.removeItem('papercup_pending_call');
-          
-          // Execute the call
-          await this.executeCall(pendingCall.phoneNumber, pendingCall.countryCode);
+          try {
+            const pendingCall = JSON.parse(pendingCallData);
+            console.log("Processing pending call:", pendingCall);
+            
+            // IMPORTANT: Clear pending call data BEFORE executing
+            localStorage.removeItem('papercup_pending_call');
+            
+            // Execute the call directly without timeout
+            console.log("Executing stored call after login");
+            await this.executeCall(pendingCall.phoneNumber, pendingCall.countryCode);
+          } catch (error) {
+            console.error("Error processing pending call:", error);
+          }
         }
       };
       
@@ -233,32 +269,45 @@ export default class extends Controller {
     try {
       console.log("Executing call to:", phoneNumber, countryCode)
       
-      // 1. Show the call interface
-      if (this.hasActiveCallOutlet) {
-        console.log("Starting call in UI")
-        this.activeCallOutlet.startCall(phoneNumber, countryCode)
+      // Use the global active call controller directly
+      const activeCallEl = document.getElementById('active-call-controller');
+      if (activeCallEl) {
+        const controller = this.application.getControllerForElementAndIdentifier(
+          activeCallEl, 'active-call'
+        );
+        if (controller) {
+          console.log("Starting call in UI with global controller")
+          controller.startCall(phoneNumber, countryCode)
+        } else {
+          console.error("Active call controller not found on element")
+        }
       } else {
-        console.error("activeCallOutlet is not available")
+        console.error("Active call element not found in DOM")
       }
       
-      // 2. Use mock API to start the call
+      // Start the call in the API immediately (no setTimeout)
       console.log("Calling API to start call")
       const response = await callApi.startCall(phoneNumber, countryCode)
       console.log("Call API response:", response)
       
-      // 3. Update call status in global state
+      // Update call status in global state
       document.dispatchEvent(new CustomEvent('papercup:call-status-changed', {
         detail: { status: 'active', callId: response.callId }
       }))
       
       console.log("Call initiated successfully:", response)
-      
     } catch (error) {
       console.error("Error initiating call:", error)
       
       // Hide the call UI if it was shown
-      if (this.hasActiveCallOutlet) {
-        this.activeCallOutlet.hideCallScreen()
+      const activeCallEl = document.getElementById('active-call-controller');
+      if (activeCallEl) {
+        const controller = this.application.getControllerForElementAndIdentifier(
+          activeCallEl, 'active-call'
+        );
+        if (controller && controller.hideCallScreen) {
+          controller.hideCallScreen();
+        }
       }
       
       document.dispatchEvent(new CustomEvent('papercup:show-notification', {
@@ -269,6 +318,31 @@ export default class extends Controller {
         }
       }))
     }
+  }
+
+  // New fallback API method
+  async directCallApi(phoneNumber, countryCode) {
+    console.log("Using direct API fallback")
+    const response = await callApi.startCall(phoneNumber, countryCode)
+    document.dispatchEvent(new CustomEvent('papercup:call-status-changed', {
+      detail: { status: 'active', callId: response.callId }
+    }))
+    return response
+  }
+
+  // Add outlet initialization method
+  async initializeActiveCallOutlet() {
+    return new Promise((resolve) => {
+      const checkOutlet = () => {
+        if (this.hasActiveCallOutlet) {
+          console.log("Active call outlet now connected")
+          resolve()
+        } else {
+          setTimeout(checkOutlet, 50)
+        }
+      }
+      checkOutlet()
+    })
   }
 
   /**

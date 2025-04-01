@@ -165,7 +165,12 @@ export default class extends Controller {
    * @param {string} state - The new call state
    */
   updateCallState(state) {
-    console.log("updateCallState called with:", state)
+    console.group("[ACTIVE CALL] State Update")
+    console.log("Previous state:", this.stateValue)
+    console.log("New state:", state)
+    console.log("Call ID:", this.callIdValue)
+    console.log("Overlay visible:", this.overlayTarget?.classList.contains('hidden'))
+    
     this.stateValue = state
     
     if (this.hasStatusTarget) {
@@ -205,6 +210,8 @@ export default class extends Controller {
     } else {
       console.error("status target not found")
     }
+
+    console.groupEnd()
   }
   
   /**

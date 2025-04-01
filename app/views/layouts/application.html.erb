@@ -82,5 +82,41 @@
     
     <!-- Login modal -->
     <%= render "shared/login_modal" %>
+    
+    <!-- Global active call controller -->
+    <div id="active-call-controller" 
+         data-controller="active-call"
+         class="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
+      <div class="bg-white rounded-lg shadow-lg opacity-0 transition-opacity duration-200 hidden flex flex-col items-center justify-center max-w-md w-full pointer-events-auto"
+           data-active-call-target="overlay">
+        
+        <!-- Call Information -->
+        <div class="px-6 pt-6 pb-4 text-center">
+          <!-- Phone Number Display -->
+          <div class="text-2xl font-semibold mb-2" data-active-call-target="phoneNumber">+1 555-123-4567</div>
+          
+          <!-- Call Status -->
+          <div class="text-amber-500 font-medium mb-2" data-active-call-target="status">Connecting...</div>
+          
+          <!-- Call Timer -->
+          <div class="text-3xl font-bold mb-4" data-active-call-target="timer">0:00</div>
+          
+          <!-- Credit Balance -->
+          <div class="text-sm text-gray-500">
+            Balance: <span data-active-call-target="credits">$10.00</span>
+          </div>
+        </div>
+        
+        <!-- End Call Button -->
+        <div class="flex justify-center pb-6">
+          <button class="w-16 h-16 rounded-full bg-[#FF4444] hover:bg-[#E60000] flex items-center justify-center shadow-[0px_4px_8px_rgba(255,68,68,0.25)] active:scale-95 transition-all"
+                  data-action="click->active-call#endCall">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
