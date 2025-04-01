@@ -1,12 +1,11 @@
 import { Controller } from "@hotwired/stimulus"
-import { authApi } from "../services/mockApi"
 
 /**
  * Login modal controller
  * Handles opening/closing the modal and authentication flow
  */
 export default class extends Controller {
-  static targets = ["email", "password", "error"]
+  static targets = ["email", "password", "error", "form"]
   
   connect() {
     // Listen for global events to show/hide modal
@@ -60,24 +59,35 @@ export default class extends Controller {
       this.showError("Please enter both email and password")
       return
     }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content
     
     try {
-      // Call the mock API for login
-      const response = await authApi.login(email, password)
+      const response = await fetch('/users/sign_in', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({
+          user: {
+            email: email,
+            password: password
+          }
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Invalid email or password')
+      }
+
+      const data = await response.json()
       
       // Dispatch login event to update global state
       document.dispatchEvent(new CustomEvent('papercup:login', {
         detail: {
-          user: response.user,
-          credits: response.credits
-        }
-      }))
-      
-      // Dispatch login success event for any listeners (like pending calls)
-      document.dispatchEvent(new CustomEvent('papercup:login-success', {
-        detail: {
-          user: response.user,
-          credits: response.credits
+          user: data.user,
+          credits: data.credits
         }
       }))
       
@@ -90,10 +100,11 @@ export default class extends Controller {
         }
       }))
       
-      // Close the modal
-      this.close()
+      // Redirect to dashboard or reload page
+      window.location.href = '/'
+      
     } catch (error) {
-      this.showError(error.message || "Login failed. Please try again.")
+      this.showError(error.message || "Invalid email or password")
       
       // Show error notification
       document.dispatchEvent(new CustomEvent('papercup:show-notification', {
