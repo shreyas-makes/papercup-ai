@@ -102,4 +102,10 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
+
+  # Configure Factory Bot
+  config.include FactoryBot::Syntax::Methods
+  
+  # MoneyRails integration with Shoulda Matchers
+  require 'money-rails/test_helpers'
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2024_04_11_204440) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_01_172141) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -61,6 +61,46 @@ ActiveRecord::Schema[8.0].define(version: 2024_04_11_204440) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "call_rates", force: :cascade do |t|
+    t.string "country_code", null: false
+    t.string "prefix", null: false
+    t.integer "rate_per_min_cents", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["country_code", "prefix"], name: "index_call_rates_on_country_code_and_prefix", unique: true
+    t.index ["country_code"], name: "index_call_rates_on_country_code"
+    t.index ["prefix"], name: "index_call_rates_on_prefix"
+  end
+
+  create_table "calls", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "phone_number", null: false
+    t.string "country_code", null: false
+    t.datetime "start_time"
+    t.integer "duration_seconds", default: 0
+    t.string "status", default: "pending"
+    t.integer "cost_cents", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["country_code"], name: "index_calls_on_country_code"
+    t.index ["phone_number"], name: "index_calls_on_phone_number"
+    t.index ["start_time"], name: "index_calls_on_start_time"
+    t.index ["status"], name: "index_calls_on_status"
+    t.index ["user_id"], name: "index_calls_on_user_id"
+  end
+
+  create_table "credit_transactions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.integer "amount_cents", null: false
+    t.string "transaction_type", null: false
+    t.string "stripe_payment_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["stripe_payment_id"], name: "index_credit_transactions_on_stripe_payment_id"
+    t.index ["transaction_type"], name: "index_credit_transactions_on_transaction_type"
+    t.index ["user_id"], name: "index_credit_transactions_on_user_id"
+  end
+
   create_table "delayed_jobs", force: :cascade do |t|
     t.integer "priority", default: 0, null: false
     t.integer "attempts", default: 0, null: false
@@ -107,10 +147,15 @@ ActiveRecord::Schema[8.0].define(version: 2024_04_11_204440) do
     t.string "stripe_customer_id"
     t.boolean "paying_customer", default: false
     t.string "stripe_subscription_id"
+    t.integer "credit_balance_cents", default: 0, null: false
+    t.string "timezone", default: "UTC"
+    t.index ["credit_balance_cents"], name: "index_users_on_credit_balance_cents"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "calls", "users"
+  add_foreign_key "credit_transactions", "users"
 end
