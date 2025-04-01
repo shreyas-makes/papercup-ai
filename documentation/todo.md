@@ -61,7 +61,7 @@ This checklist covers all aspects of implementing the Papercup browser-based int
 - [x] Implement minimal top bar
   - [x] Add credit balance display
   - [x] Create user profile dropdown
-  - [ ] Add "Add Credits" button
+  - [x] Add "Add Credits" button
 - [x] Create profile dropdown menu
   - [ ] Display user email
   - [x] Add "View Call History" option
@@ -399,18 +399,18 @@ This checklist covers all aspects of implementing the Papercup browser-based int
   - [ ] Test balance updates
 
 ### Frontend Tests
-- [ ] Write Stimulus controller tests
-  - [ ] Test dialer controller
+- [x] Write Stimulus controller tests
+  - [x] Test dialer controller
   - [x] Test call controller
   - [ ] Test payment controller
-- [ ] Implement UI component tests
-  - [ ] Test keypad
+- [x] Implement UI component tests
+  - [x] Test keypad
   - [x] Test call history
   - [x] Test active call screen
-- [ ] Create system tests
-  - [ ] Test complete user flows
-  - [ ] Test responsive design
-  - [ ] Test error scenarios
+- [x] Create system tests
+  - [x] Test complete user flows
+  - [x] Test responsive design
+  - [x] Test error scenarios
 
 ## Deployment
 

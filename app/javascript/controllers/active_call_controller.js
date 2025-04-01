@@ -232,7 +232,8 @@ export default class extends Controller {
           const response = await creditApi.getBalance()
           
           if (this.hasCreditsTarget) {
-            this.creditsTarget.textContent = `$${response.credits.toFixed(2)}`
+            // Remove the $ since it's already in the HTML
+            this.creditsTarget.textContent = response.credits.toFixed(2)
           }
           
           // Update global credit balance

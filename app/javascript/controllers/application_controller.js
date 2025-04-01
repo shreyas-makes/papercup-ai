@@ -265,6 +265,12 @@ export default class extends Controller {
   creditsValueChanged(value) {
     console.log("Credits value changed:", value)
     document.body.dataset.credits = value
+    
+    // Update all elements with data-application-balance attribute
+    const balanceElements = document.querySelectorAll('[data-application-balance]')
+    balanceElements.forEach(element => {
+      element.textContent = value.toFixed(2)
+    })
   }
   
   /**
