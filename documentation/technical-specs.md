@@ -596,3 +596,141 @@ interface AppState {
   └── Notifications
       └── LowBalanceWarning
 ```
+```
+
+## Database Entity-Relationship Diagram
+
+```mermaid
+erDiagram
+    User ||--o{ Call : "has many"
+    User ||--o{ CreditTransaction : "has many"
+    
+    User {
+        id integer PK
+        email string
+        encrypted_password string
+        reset_password_token string
+        reset_password_sent_at datetime
+        remember_created_at datetime
+        admin boolean
+        stripe_customer_id string
+        paying_customer boolean
+        stripe_subscription_id string
+        credit_balance_cents integer
+        timezone string
+        created_at datetime
+        updated_at datetime
+    }
+    
+    Call {
+        id integer PK
+        user_id integer FK
+        phone_number string
+        country_code string
+        start_time datetime
+        duration_seconds integer
+        status string
+        cost_cents integer
+        created_at datetime
+        updated_at datetime
+    }
+    
+    CreditTransaction {
+        id integer PK
+        user_id integer FK
+        amount_cents integer
+        transaction_type string
+        stripe_payment_id string
+        created_at datetime
+        updated_at datetime
+    }
+    
+    CallRate {
+        id integer PK
+        country_code string
+        prefix string
+        rate_per_min_cents integer
+        created_at datetime
+        updated_at datetime
+    }
+```
+
+### Model Descriptions
+
+#### User
+The User model is the central entity in the system, representing both regular users and administrators. It uses Devise for authentication and stores payment-related information.
+- `credit_balance_cents`: Stores the user's current credit balance in cents, managed through the Money-Rails gem
+- `timezone`: Stores the user's preferred timezone for displaying call times and scheduling
+- Has many calls and credit transactions
+
+#### Call
+The Call model represents individual phone calls made through the platform.
+- `phone_number`: The destination phone number
+- `country_code`: The country code for the destination (e.g., 'US', 'GB')
+- `start_time`: When the call was initiated
+- `duration_seconds`: The total call duration in seconds
+- `status`: Current call status ('pending', 'completed', 'failed')
+- `cost_cents`: The final cost charged for the call in cents
+- Belongs to a user
+
+#### CreditTransaction
+The CreditTransaction model tracks all credit-related activities on a user's account.
+- `amount_cents`: The transaction amount in cents (positive for deposits/refunds, negative for withdrawals/charges)
+- `transaction_type`: Type of transaction ('deposit', 'withdrawal', 'refund', 'call_charge')
+- `stripe_payment_id`: Reference to Stripe payment ID for deposits
+- Belongs to a user
+
+#### CallRate
+The CallRate model defines pricing for calls to different regions and specific area codes.
+- `country_code`: The target country for this rate (e.g., 'US', 'GB')
+- `prefix`: The number prefix to match (e.g., '1' for US, '1212' for New York)
+- `rate_per_min_cents`: The per-minute rate in cents
+- Longer prefixes represent more specific rates and take precedence over shorter ones
+
+### Key Service Objects
+
+The system implements several service objects to handle complex business logic:
+
+1. **CreditService**: Handles atomic credit operations to ensure consistent user balance updates
+2. **CallCostCalculator**: Calculates call costs based on duration and rate
+3. **CallCompletionService**: Manages the call completion process, including cost calculation and charging users
+
+### Service Interaction Flow
+
+The following diagram illustrates how the services interact during a typical call completion process:
+
+```mermaid
+sequenceDiagram
+    participant WebApp
+    participant CallCompletionService
+    participant CallCostCalculator
+    participant CallRate
+    participant CreditService
+    participant User
+    participant Call
+    participant CreditTransaction
+    
+    WebApp->>CallCompletionService: complete!(duration_seconds)
+    CallCompletionService->>Call: update!(duration_seconds)
+    CallCompletionService->>CallCostCalculator: new(call)
+    CallCostCalculator->>CallRate: find_rate_for_number(phone_number, country_code)
+    CallRate-->>CallCostCalculator: call_rate
+    CallCostCalculator->>CallCostCalculator: calculate()
+    CallCostCalculator->>Call: update(cost_cents)
+    CallCostCalculator-->>CallCompletionService: success
+    CallCompletionService->>CreditService: new(user, cost, 'call_charge')
+    CreditService->>CreditTransaction: create!
+    CreditService->>User: update!(credit_balance_cents)
+    CreditService-->>CallCompletionService: success
+    CallCompletionService->>Call: update!(status: 'completed')
+    CallCompletionService-->>WebApp: true
+```
+
+This diagram showcases how the call completion process:
+1. Updates the call with the final duration
+2. Calculates the cost using the appropriate rate
+3. Creates a credit transaction
+4. Updates the user's balance
+5. Marks the call as completed
+
+All operations are wrapped in a database transaction to ensure data consistency. If any step fails (e.g., insufficient balance), the process is rolled back and the call is marked as 'failed'.
