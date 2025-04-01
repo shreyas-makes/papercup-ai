@@ -11,6 +11,11 @@ module Papercup
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.0
 
+    # Add JWT authentication middleware (middleware will be loaded after initialization)
+    config.autoload_paths += %W[#{config.root}/app/middleware]
+    
+    # Middleware will be added in an initializer to ensure it's loaded
+
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
@@ -48,5 +53,7 @@ module Papercup
       g.assets false # stylesheets
       g.helper true
     end
+
+    # Please, add to the `config.assets.precompile` list all
   end
 end

@@ -3,6 +3,6 @@ class SubscribeController < ApplicationController
   before_action :maybe_skip_onboarding
 
   def index
-    ab_finished(:cta, reset: false) # reset:false prevents a user from triggering duplicate completions
+    # ab_finished(:cta, reset: false)
   end
 end

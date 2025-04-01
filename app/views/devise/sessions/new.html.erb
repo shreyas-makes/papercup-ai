@@ -38,6 +38,8 @@
       </div>
     <% end %>
 
+    <%= render 'shared/social_login' %>
+
     <div class="mt-6 text-center text-gray-400">
       Don't have an account?
       <%= link_to 'Sign up', new_user_registration_path, class: 'font-medium text-gray-500 hover:text-gray-600 focus:outline-none focus:underline transition ease-in-out duration-150' %>

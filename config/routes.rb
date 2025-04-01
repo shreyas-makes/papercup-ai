@@ -3,8 +3,25 @@ Rails.application.routes.draw do
 
   root 'dialer#index'
 
-  devise_for :users, path: '', path_names: { sign_in: 'login', sign_up: 'signup' }, controllers: { registrations: 'registrations' }
+  # Devise routes with OmniAuth callbacks
+  devise_for :users, path: '', path_names: { sign_in: 'login', sign_up: 'signup' }, controllers: { 
+    registrations: 'registrations',
+    omniauth_callbacks: 'users/omniauth_callbacks'
+  }
   get 'logout', to: 'pages#logout', as: 'logout'
+
+  # Session management
+  get 'session/token', to: 'sessions#token'
+  delete 'session', to: 'sessions#destroy'
+
+  # API routes
+  namespace :api, defaults: { format: :json } do
+    resources :sessions, only: [:create, :destroy] do
+      collection do
+        get :check
+      end
+    end
+  end
 
   resources :subscribe, only: [:index]
   resources :dashboard, only: [:index]
