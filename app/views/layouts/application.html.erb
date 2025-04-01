@@ -6,9 +6,7 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <% if Rails.application.credentials.stripe.present? %>
-      <meta name="stripe-key" content="<%= Rails.application.credentials.stripe&.publishable_key %>" />
-    <% end %>
+    <meta name="stripe-key" content="<%= ENV['STRIPE_PUBLISHABLE_KEY'] %>" />
 
     <!-- Work Sans font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

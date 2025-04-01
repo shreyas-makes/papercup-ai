@@ -1,4 +1,4 @@
-<header class="bg-primary text-secondary h-16 shadow-md" data-controller="header">
+<header class="bg-primary text-secondary h-16 shadow-md">
   <div class="container mx-auto px-4 h-full">
     <nav class="flex items-center justify-between h-full">
       <!-- Logo -->
@@ -8,32 +8,101 @@
         <% end %>
       </div>
 
-    
-
       <!-- User Balance & Profile -->
-      <div class="flex items-center space-x-4">
-        <div class="text-accent font-medium" data-application-target="balanceDisplay">
-          Balance: $<span data-application-balance></span>
-        </div>
-        <div class="relative">
-          <button class="flex items-center focus:outline-none" data-action="click->header#toggleProfileMenu">
-            <div class="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-primary">
-              <span>U</span>
-            </div>
-          </button>
-          <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden" data-header-target="profileMenu">
-            <div class="py-1">
-              <a href="#" class="block px-4 py-2 text-sm text-text-secondary hover:bg-background">Profile</a>
-              <a href="#" class="block px-4 py-2 text-sm text-text-secondary hover:bg-background">Settings</a>
-              <a href="#" class="block px-4 py-2 text-sm text-text-secondary hover:bg-background">Sign out</a>
+      <div class="flex items-center space-x-6">
+        <% if user_signed_in? %>
+          <!-- Credit Balance -->
+          <div class="text-accent font-medium px-2" data-application-target="balanceDisplay">
+            Balance: $<span data-application-balance><%= current_user.credit_balance %></span>
+          </div>
+
+          <!-- Profile Dropdown - CSS Only Solution -->
+          <div class="relative dropdown-container">
+            <!-- Profile Button -->
+            <button type="button" class="flex items-center p-2 rounded-full hover:bg-gray-700 focus:outline-none cursor-pointer dropdown-trigger">
+              <% if current_user.image.present? %>
+                <img src="<%= current_user.image %>" alt="Profile" class="w-10 h-10 rounded-full">
+              <% else %>
+                <div class="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-primary">
+                  <span class="text-lg"><%= current_user.email.first.upcase %></span>
+                </div>
+              <% end %>
+            </button>
+
+            <!-- Profile Menu - Improved dropdown -->
+            <div class="dropdown-menu">
+              <!-- User Email -->
+              <div class="px-5 py-3 text-sm text-gray-500 border-b border-gray-200 font-medium">
+                <%= current_user.email %>
+              </div>
+
+              <!-- Menu Items -->
+              <%= link_to "Profile", edit_user_registration_path, 
+                  class: "block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100" %>
+              
+              <%= link_to "Add Credits", subscribe_path, 
+                  class: "block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100" %>
+              
+              <!-- Logout Button -->
+              <%= button_to "Sign out", destroy_user_session_path, 
+                  method: :delete, 
+                  form: { data: { turbo: false } }, 
+                  class: "w-full text-left px-5 py-3 text-sm text-red-600 hover:bg-red-50" %>
             </div>
           </div>
-        </div>
+        <% else %>
+          <%= link_to "Sign in", new_user_session_path, class: "text-accent font-medium hover:text-accent-dark px-4 py-2" %>
+        <% end %>
       </div>
     </nav>
   </div>
 </header>
 
+<style>
+/* Dropdown styling */
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 5px); /* Small gap for visual separation */
+  width: 240px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  visibility: hidden;
+  z-index: 50;
+  transform: translateY(-10px);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Create a hidden area to prevent dropdown from closing */
+.dropdown-container:before {
+  content: "";
+  position: absolute;
+  height: 20px;
+  width: 100%;
+  bottom: -20px;
+  left: 0;
+}
+
+/* Show dropdown on hover */
+.dropdown-container:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Keep dropdown visible when hovering the dropdown itself */
+.dropdown-menu:hover {
+  opacity: 1;
+  visibility: visible;
+}
+</style>
 
 <!-- smooth scroll nav links -->
 <script type="text/javascript">

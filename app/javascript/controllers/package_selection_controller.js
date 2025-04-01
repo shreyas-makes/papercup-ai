@@ -46,24 +46,9 @@ export default class extends Controller {
     
     // Get package details
     const packageId = selectedPackage.dataset.packageId
-    const packagePrice = selectedPackage.dataset.packagePrice
-    const packageCredits = selectedPackage.dataset.packageCredits
-    
-    // Update global selectedPackage variable
-    window.selectedPackage = packageId
     
     // Update the Stripe checkout
     this.updateCheckout(packageId)
-    
-    // Dispatch event for any listeners
-    this.element.dispatchEvent(new CustomEvent('package-selected', {
-      bubbles: true,
-      detail: {
-        packageId,
-        packagePrice,
-        packageCredits
-      }
-    }))
   }
   
   /**

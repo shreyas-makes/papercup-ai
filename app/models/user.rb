@@ -3,6 +3,10 @@ class User < ApplicationRecord
   include Onboardable
   include Billable
 
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :validatable,
+         :omniauthable, omniauth_providers: [:google_oauth2]
+
   # Money-Rails integration
   monetize :credit_balance_cents, as: "credit_balance"
 
@@ -13,35 +17,23 @@ class User < ApplicationRecord
   scope :subscribed, -> { where.not(stripe_subscription_id: [nil, '']) }
   scope :with_positive_balance, -> { where('credit_balance_cents > 0') }
 
+  validates :email, presence: true, uniqueness: true
+  validates :credit_balance, numericality: { greater_than_or_equal_to: 0 }
+
   # Class method for OAuth authentication
   def self.from_omniauth(auth)
-    # Find existing user by provider and uid
-    user = where(provider: auth.provider, uid: auth.uid).first
-    
-    # If user exists, update their credentials
-    if user
-      user.update(
-        token: auth.credentials.token,
-        refresh_token: auth.credentials.refresh_token,
-        oauth_expires_at: auth.credentials.expires_at.present? ? Time.at(auth.credentials.expires_at) : nil,
-        image: auth.info.image,
-        name: auth.info.name
-      )
-      return user
+    where(provider: auth.provider, uid: auth.uid).first_or_create do |user|
+      user.email = auth.info.email
+      user.password = Devise.friendly_token[0, 20]
+      user.name = auth.info.name
+      user.avatar_url = auth.info.image
+      user.oauth_token = auth.credentials.token
+      user.oauth_expires_at = Time.at(auth.credentials.expires_at) if auth.credentials.expires_at
     end
-    
-    # Otherwise, find user by email or create new one
-    where(email: auth.info.email).first_or_create do |new_user|
-      new_user.provider = auth.provider
-      new_user.uid = auth.uid
-      new_user.email = auth.info.email
-      new_user.password = Devise.friendly_token[0, 20]
-      new_user.name = auth.info.name
-      new_user.image = auth.info.image
-      new_user.token = auth.credentials.token
-      new_user.refresh_token = auth.credentials.refresh_token
-      new_user.oauth_expires_at = auth.credentials.expires_at.present? ? Time.at(auth.credentials.expires_at) : nil
-    end
+  end
+
+  def jwt_token
+    JwtService.encode({ user_id: id })
   end
 
   # :nocov:

@@ -9,10 +9,12 @@ import "../data/countries"
 import DebugPanelController from "./debug_panel_controller"
 import LoginModalController from "./login_modal_controller"
 import PackageSelectionController from "./package_selection_controller"
+import HeaderController from "./header_controller"
 
 application.register("debug-panel", DebugPanelController)
 application.register("login-modal", LoginModalController)
 application.register("package-selection", PackageSelectionController)
+application.register("header", HeaderController)
 
 // Eager load all controllers defined in the import map under controllers/**/*_controller
 import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"

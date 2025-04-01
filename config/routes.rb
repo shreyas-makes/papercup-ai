@@ -6,7 +6,8 @@ Rails.application.routes.draw do
   # Devise routes with OmniAuth callbacks
   devise_for :users, path: '', path_names: { sign_in: 'login', sign_up: 'signup' }, controllers: { 
     registrations: 'registrations',
-    omniauth_callbacks: 'users/omniauth_callbacks'
+    omniauth_callbacks: 'users/omniauth_callbacks',
+    sessions: 'users/sessions'
   }
   get 'logout', to: 'pages#logout', as: 'logout'
 
@@ -21,9 +22,16 @@ Rails.application.routes.draw do
         get :check
       end
     end
+
+    namespace :v1 do
+      post 'auth/login', to: 'auth#create'
+      delete 'auth/logout', to: 'auth#destroy'
+      get 'auth/me', to: 'auth#me'
+    end
   end
 
-  resources :subscribe, only: [:index]
+  # Main app routes
+  get 'subscribe', to: 'subscribe#index'
   resources :dashboard, only: [:index]
   resources :account, only: %i[index update] do
     get :stop_impersonating, on: :collection

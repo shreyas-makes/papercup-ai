@@ -63,10 +63,11 @@ export default class extends Controller {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content
     
     try {
-      const response = await fetch('/users/sign_in', {
+      const response = await fetch('/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'X-CSRF-Token': csrfToken
         },
         body: JSON.stringify({
@@ -78,10 +79,23 @@ export default class extends Controller {
       })
 
       if (!response.ok) {
-        throw new Error('Invalid email or password')
+        if (response.headers.get('content-type')?.includes('application/json')) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Invalid email or password');
+        } else {
+          throw new Error('Invalid email or password');
+        }
       }
 
-      const data = await response.json()
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        // If it's not JSON, it's probably a redirect - just reload the page
+        window.location.reload();
+        return;
+      }
+
+      const data = await response.json();
       
       // Dispatch login event to update global state
       document.dispatchEvent(new CustomEvent('papercup:login', {
