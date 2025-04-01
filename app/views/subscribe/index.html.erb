@@ -1,33 +1,265 @@
-<%= render partial: "shared/heading", locals: { title: 'Start Trial', description: "Subscribe to #{Rails.application.credentials.company_name}." } %>
 
-<div id="checkout">
-  <!-- Checkout will insert the payment form here -->
+<div class="min-h-screen bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">Choose Your Credit Package</h1>
+      <p class="mt-3 text-xl text-gray-500">Get started with Papercup and make high-quality international calls.</p>
+    </div>
+    
+    <!-- Two-panel layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      
+      <!-- Left panel: Package selection -->
+      <div class="bg-gray-50 rounded-lg shadow-sm p-8">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-6">Select a Package</h2>
+        
+        <!-- Three-tier package selection -->
+        <div class="space-y-4" data-controller="package-selection">
+          <!-- Starter Package -->
+          <div class="relative border-2 border-transparent hover:border-primary-300 bg-white rounded-lg p-6 cursor-pointer transition-all duration-200 ease-in-out shadow-sm hover:shadow"
+               data-package-selection-target="package"
+               data-action="click->package-selection#selectPackage"
+               data-package-id="starter"
+               data-package-price="10"
+               data-package-credits="50">
+            
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-xl font-medium text-gray-900">Starter</h3>
+                <p class="mt-1 text-gray-500">Perfect for occasional callers</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-bold text-gray-900">$10</p>
+                <p class="text-sm text-gray-500">50 credits</p>
+              </div>
+            </div>
+            
+            <div class="mt-4">
+              <p class="text-sm text-gray-600">Average price per minute: $0.20</p>
+              <ul class="mt-2 space-y-2">
+                <li class="flex items-center text-sm text-gray-600">
+                  <svg class="h-5 w-5 text-primary-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  Approximately 45 minutes of talk time
+                </li>
+                <li class="flex items-center text-sm text-gray-600">
+                  <svg class="h-5 w-5 text-primary-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  Valid for 30 days
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <!-- Standard Package -->
+          <div class="relative border-2 border-primary-500 bg-white rounded-lg p-6 cursor-pointer transition-all duration-200 ease-in-out shadow-md"
+               data-package-selection-target="package"
+               data-action="click->package-selection#selectPackage"
+               data-package-id="standard"
+               data-package-price="25"
+               data-package-credits="150">
+            
+            <div class="absolute -top-2 -right-2 bg-primary-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+              BEST VALUE
+            </div>
+            
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-xl font-medium text-gray-900">Standard</h3>
+                <p class="mt-1 text-gray-500">Most popular choice</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-bold text-gray-900">$25</p>
+                <p class="text-sm text-gray-500">150 credits</p>
+              </div>
+            </div>
+            
+            <div class="mt-4">
+              <p class="text-sm text-gray-600">Average price per minute: $0.17</p>
+              <ul class="mt-2 space-y-2">
+                <li class="flex items-center text-sm text-gray-600">
+                  <svg class="h-5 w-5 text-primary-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  Approximately 140 minutes of talk time
+                </li>
+                <li class="flex items-center text-sm text-gray-600">
+                  <svg class="h-5 w-5 text-primary-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  Valid for 60 days
+                </li>
+                <li class="flex items-center text-sm text-gray-600">
+                  <svg class="h-5 w-5 text-primary-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  Save 15% compared to Starter
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <!-- Premium Package -->
+          <div class="relative border-2 border-transparent hover:border-primary-300 bg-white rounded-lg p-6 cursor-pointer transition-all duration-200 ease-in-out shadow-sm hover:shadow"
+               data-package-selection-target="package"
+               data-action="click->package-selection#selectPackage"
+               data-package-id="premium"
+               data-package-price="50"
+               data-package-credits="350">
+            
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-xl font-medium text-gray-900">Premium</h3>
+                <p class="mt-1 text-gray-500">For frequent callers</p>
+              </div>
+              <div class="text-right">
+                <p class="text-2xl font-bold text-gray-900">$50</p>
+                <p class="text-sm text-gray-500">350 credits</p>
+              </div>
+            </div>
+            
+            <div class="mt-4">
+              <p class="text-sm text-gray-600">Average price per minute: $0.14</p>
+              <ul class="mt-2 space-y-2">
+                <li class="flex items-center text-sm text-gray-600">
+                  <svg class="h-5 w-5 text-primary-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  Approximately 350 minutes of talk time
+                </li>
+                <li class="flex items-center text-sm text-gray-600">
+                  <svg class="h-5 w-5 text-primary-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  Valid for 90 days
+                </li>
+                <li class="flex items-center text-sm text-gray-600">
+                  <svg class="h-5 w-5 text-primary-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  Save 30% compared to Starter
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Right panel: Payment and How It Works -->
+      <div class="space-y-8">
+        <!-- Payment section -->
+        <div class="bg-white rounded-lg shadow-sm p-8 border border-gray-200">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-6">Complete Your Purchase</h2>
+          
+          <div id="checkout" class="min-h-[300px]">
+            <!-- Stripe Checkout will be inserted here -->
+            <div class="animate-pulse flex flex-col space-y-4 py-4">
+              <div class="h-8 bg-gray-200 rounded w-3/4"></div>
+              <div class="h-12 bg-gray-200 rounded w-full"></div>
+              <div class="h-12 bg-gray-200 rounded w-full"></div>
+              <div class="h-12 bg-gray-200 rounded w-full"></div>
+              <div class="h-12 bg-gray-200 rounded w-full"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- How It Works section -->
+        <div class="bg-gray-50 rounded-lg shadow-sm p-8">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-6">How It Works</h2>
+          
+          <ol class="space-y-6">
+            <li class="flex">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-8 w-8 rounded-full bg-primary-500 text-white font-medium">
+                  1
+                </div>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg font-medium text-gray-900">Choose a credit package</h3>
+                <p class="mt-1 text-gray-600">Select the package that best fits your calling needs.</p>
+              </div>
+            </li>
+            
+            <li class="flex">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-8 w-8 rounded-full bg-primary-500 text-white font-medium">
+                  2
+                </div>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg font-medium text-gray-900">Complete your payment</h3>
+                <p class="mt-1 text-gray-600">Pay securely using your credit card or other payment methods.</p>
+              </div>
+            </li>
+            
+            <li class="flex">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-8 w-8 rounded-full bg-primary-500 text-white font-medium">
+                  3
+                </div>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg font-medium text-gray-900">Start making calls</h3>
+                <p class="mt-1 text-gray-600">Your credits will be instantly added to your account. Dial any international number and start talking.</p>
+              </div>
+            </li>
+          </ol>
+          
+          <div class="mt-8 bg-primary-50 p-4 rounded-lg border border-primary-100">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-primary-800">Need help?</h3>
+                <p class="mt-1 text-sm text-primary-700">
+                  If you have any questions about our packages or pricing, please contact our support team.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://js.stripe.com/v3/"></script>
 <script type="text/javascript">
-const stripe = Stripe('<%= Rails.application.credentials.stripe&.publishable_key || '' %>');
+  const stripe = Stripe('<%= Rails.application.credentials.stripe&.publishable_key || '' %>');
+  let selectedPackage = 'standard'; // Default selected package
 
-initialize();
+  initialize();
 
-// Create a Checkout Session as soon as the page loads
-async function initialize() {
-  const response = await fetch("/billing_portal.json", {
-    method: 'POST'
-  });
+  // Create a Checkout Session as soon as the page loads
+  async function initialize() {
+    const response = await fetch("/billing_portal.json", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({
+        package_id: selectedPackage
+      })
+    });
 
-  const { clientSecret } = await response.json();
+    const { clientSecret } = await response.json();
 
-  const checkout = await stripe.initEmbeddedCheckout({
-    clientSecret,
-  });
+    const checkout = await stripe.initEmbeddedCheckout({
+      clientSecret,
+    });
 
-  // Mount Checkout
-  checkout.mount('#checkout');
-}
+    // Mount Checkout
+    checkout.mount('#checkout');
+  }
 </script>
 
-<% if ScriptTag.enabled.exists?(name: 'Rewardful') %>
+<% if defined?(ScriptTag) && ScriptTag.respond_to?(:enabled) && ScriptTag.enabled.exists?(name: 'Rewardful') %>
 <script>
   rewardful('convert', { email: '<%= current_user.email %>' })
 </script>

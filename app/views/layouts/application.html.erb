@@ -6,6 +6,10 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
+    <% if Rails.application.credentials.stripe.present? %>
+      <meta name="stripe-key" content="<%= Rails.application.credentials.stripe&.publishable_key %>" />
+    <% end %>
+
     <!-- Work Sans font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
