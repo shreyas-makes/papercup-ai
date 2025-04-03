@@ -22,6 +22,9 @@ require_relative 'support/factory_bot'
 require_relative 'support/chrome'
 require_relative 'helpers/devise_helpers'
 
+# Load all support files
+Dir[Rails.root.join('spec/support/**/*.rb')].each { |f| require f }
+
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -58,6 +61,7 @@ end
 RSpec.configure do |config|
   # helper to leverage Devise in Request specs, just invoke sign_in(user)
   config.include Devise::Test::IntegrationHelpers, type: :request
+  config.include Devise::Test::ControllerHelpers, type: :controller
 
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_path = "#{::Rails.root}/spec/fixtures"
@@ -108,4 +112,12 @@ RSpec.configure do |config|
   
   # MoneyRails integration with Shoulda Matchers
   require 'money-rails/test_helpers'
+
+  # Helper for generating JWT tokens in tests
+  def generate_jwt_token(user)
+    JWT.encode(
+      { user_id: user.id, exp: 24.hours.from_now.to_i },
+      Rails.application.credentials.secret_key_base
+    )
+  end
 end

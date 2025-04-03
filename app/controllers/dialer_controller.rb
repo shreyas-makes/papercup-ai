@@ -8,6 +8,11 @@ class DialerController < ApplicationController
     @countries = countries_data
   end
 
+  def test_webrtc
+    # Test action for WebRTC functionality
+    # No need to pass any data to the view
+  end
+
   private
 
   def countries_data

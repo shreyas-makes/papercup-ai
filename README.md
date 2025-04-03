@@ -12,6 +12,32 @@ Papercup is a WebRTC-based communication platform built with Ruby on Rails, enab
 - Mobile-responsive UI built with Tailwind CSS
 - Background job processing via Sidekiq
 
+## Changelog
+
+### April 3, 2025 - WebRTC Backend Foundation
+
+We've established the backend infrastructure for WebRTC communication in the Papercup platform. This included creating a robust configuration initializer with multiple Google STUN servers, developing a secure JWT-based token generation service with built-in expiration, and adding a properly authenticated token API endpoint. To enable real-time communication, we implemented ActionCable channels for WebRTC signaling and designed service classes for connection handling and call routing. Integration with Twilio was completed by adding the twilio-ruby gem and creating a service for outbound PSTN calls, along with configuring the necessary environment variables. We also developed a testing framework with a browser-based interface to validate the token generation functionality.
+
+### April 1, 2025 - User Authentication Enhancements
+
+The Google OAuth integration was significantly improved with more robust error handling and user flow optimizations. We enhanced the authentication process to distinguish between login and signup scenarios with contextual button labels and appropriate redirects. The user model's OAuth handling was streamlined to store only necessary user information from Google profiles, and we implemented proper session management to prevent authentication conflicts.
+
+### March 31, 2025 - Call Processing and Notifications
+
+We implemented a comprehensive notification system throughout the application with different notification types for various scenarios. This included success notifications for completed actions, warning notifications for low credit balances, and error notifications for failed operations. The notification components were designed with auto-dismiss functionality and appropriate visual styling based on the message type. Additionally, we fixed issues with the call initiation process after login, ensuring proper outlet connections and event handling.
+
+### March 30, 2025 - Active Call Interface
+
+The active call screen was fully implemented with a visually appealing overlay that centers perfectly on the screen. The interface includes all specified components: the dialed phone number display, a functional duration timer, current credit balance indicator, and a prominent red end call button. Animations were added for smooth transitions between calling states, and we ensured proper mobile responsiveness. The interface was carefully designed to balance aesthetics with usability, providing clear visual feedback during active calls.
+
+### March 29, 2025 - Call History and Error States
+
+We created a complete call history section with a Stimulus controller that displays past calls in a scrollable list. Each call entry shows the phone number, date/time, duration, and country flag when available. The history component includes a "No calls yet" message for new users and offers one-click redial functionality. Additionally, we implemented various error states and feedback mechanisms throughout the application, including loading spinners, disabled states for buttons during processing, and appropriate error notifications for failed operations.
+
+### March 28, 2025 - Core Database Models
+
+The foundation of the application's data structure was established by creating and implementing all the necessary database models. We developed the User model with Devise integration, the Call model for tracking call details, the CreditTransaction model for financial operations, and the CallRate model for determining call pricing. Money-Rails was integrated for handling currency fields, and we created service objects for managing credit operations and call completions. Comprehensive testing was implemented for all models and services to ensure reliability and data integrity.
+
 ## Technology Stack
 
 - **Frontend**: Stimulus, Turbo, Tailwind CSS

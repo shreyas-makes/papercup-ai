@@ -1,52 +1,88 @@
 require 'rails_helper'
 
 RSpec.describe JwtService do
-  let(:user) { create(:user) }
-  
   describe '.encode' do
-    it 'generates a JWT token for a user' do
-      token = JwtService.encode(user)
-      expect(token).to be_present
+    it 'encodes a payload with JWT' do
+      payload = { user_id: 123 }
       
-      # Verify token format (header.payload.signature)
-      expect(token.split('.').length).to eq(3)
+      token = JwtService.encode(payload)
+      
+      expect(token).to be_a(String)
+      expect(token.split('.').length).to eq(3) # Header, payload, signature
     end
     
-    it 'includes user id in the payload' do
-      token = JwtService.encode(user)
-      decoded_token = JWT.decode(token, Rails.application.credentials.secret_key_base).first
+    it 'adds an expiration time to the payload' do
+      payload = { user_id: 123 }
       
-      expect(decoded_token['user_id']).to eq(user.id)
-    end
-    
-    it 'sets expiration time' do
-      token = JwtService.encode(user)
-      decoded_token = JWT.decode(token, Rails.application.credentials.secret_key_base).first
+      allow(Time).to receive(:now).and_return(Time.at(0))
+      token = JwtService.encode(payload)
       
-      expect(decoded_token['exp']).to be_present
-      expect(decoded_token['exp']).to be > Time.current.to_i
+      decoded_payload = JWT.decode(
+        token,
+        JwtService.send(:secret_key),
+        true,
+        { algorithm: JwtService::ALGORITHM }
+      ).first
+      
+      expect(decoded_payload).to include('exp')
+      expect(decoded_payload['exp']).to eq((Time.at(0) + 24.hours).to_i)
     end
   end
   
   describe '.decode' do
-    it 'returns user from a valid token' do
-      token = JwtService.encode(user)
-      decoded_user = JwtService.decode(token)
+    it 'decodes a valid token' do
+      payload = { 'test_key' => 'test_value' }
+      token = JwtService.encode(payload)
       
-      expect(decoded_user).to eq(user)
+      result = JwtService.decode(token)
+      
+      expect(result).to include('test_key' => 'test_value')
+      expect(result).to include('exp')
     end
     
-    it 'returns nil for invalid token' do
-      expect(JwtService.decode('invalid.token')).to be_nil
+    it 'returns nil for an invalid token' do
+      result = JwtService.decode('invalid.token.here')
+      
+      expect(result).to be_nil
     end
     
-    it 'returns nil for expired token' do
-      token = JwtService.encode(user, -10) # expired token
-      expect(JwtService.decode(token)).to be_nil
+    it 'returns nil for an expired token' do
+      payload = { 'user_id' => 1, 'exp' => 1.hour.ago.to_i }
+      
+      # Manually encode with expired token
+      token = JWT.encode(
+        payload,
+        JwtService.send(:secret_key), 
+        JwtService::ALGORITHM
+      )
+      
+      result = JwtService.decode(token)
+      
+      expect(result).to be_nil
+    end
+  end
+  
+  describe '.secret_key' do
+    it 'uses the environment variable if available' do
+      # Store original value
+      original_env = ENV['JWT_SECRET_KEY']
+      ENV['JWT_SECRET_KEY'] = 'test_secret_key'
+      
+      expect(JwtService.send(:secret_key)).to eq('test_secret_key')
+      
+      # Restore original value
+      ENV['JWT_SECRET_KEY'] = original_env
     end
     
-    it 'returns nil for nil token' do
-      expect(JwtService.decode(nil)).to be_nil
+    it 'falls back to Rails secret key base if env variable not set' do
+      # Store original value
+      original_env = ENV['JWT_SECRET_KEY']
+      ENV['JWT_SECRET_KEY'] = nil
+      
+      expect(JwtService.send(:secret_key)).to eq(Rails.application.secret_key_base)
+      
+      # Restore original value
+      ENV['JWT_SECRET_KEY'] = original_env
     end
   end
 end 

@@ -4,11 +4,19 @@ Rails.application.routes.draw do
   root 'dialer#index'
 
   # Devise routes with OmniAuth callbacks
-  devise_for :users, path: '', path_names: { sign_in: 'login', sign_up: 'signup' }, controllers: { 
-    registrations: 'registrations',
-    omniauth_callbacks: 'users/omniauth_callbacks',
-    sessions: 'users/sessions'
-  }
+  devise_for :users,
+    path: '',  # This makes routes like /login instead of /users/login
+    path_names: { 
+      sign_in: 'login',
+      sign_up: 'signup'
+    },
+    controllers: {
+      omniauth_callbacks: 'users/omniauth_callbacks',
+      registrations: 'registrations',
+      sessions: 'users/sessions'
+    }
+  
+  # Custom logout route
   get 'logout', to: 'pages#logout', as: 'logout'
 
   # Session management
@@ -27,6 +35,11 @@ Rails.application.routes.draw do
       post 'auth/login', to: 'auth#create'
       delete 'auth/logout', to: 'auth#destroy'
       get 'auth/me', to: 'auth#me'
+    end
+
+    # WebRTC token endpoint
+    namespace :webrtc do
+      post :token
     end
   end
 
@@ -57,6 +70,7 @@ Rails.application.routes.draw do
   # Dialer and calling routes
   resources :dialer, only: [:index]
   get 'dialer/test', to: 'dialer#test', as: 'dialer_test'
+  get 'dialer/test_webrtc', to: 'dialer#test_webrtc', as: 'dialer_test_webrtc'
   resources :credits, only: [:index]
   resources :call_history, only: [:index]
   
