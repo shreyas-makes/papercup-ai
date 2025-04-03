@@ -35,6 +35,38 @@ class User < ApplicationRecord
     JwtService.encode({ user_id: id })
   end
 
+  # Check if the user has sufficient credits for a call to a specific country
+  # @param country_code [String] The country code to check rates for
+  # @param duration [Integer] Optional estimated call duration in seconds
+  # @return [Boolean] True if user has sufficient credits
+  def has_sufficient_credits?(country_code, duration = 60)
+    # Get minimum credits required (1 minute worth of call)
+    rate = CallRate.find_rate_for_number('', country_code)
+    
+    if rate.nil?
+      # Use default rate if no specific rate is found
+      min_credits_required = Money.new(50, 'USD') # $0.50 per minute as default
+    else
+      min_credits_required = rate.rate_per_min
+    end
+    
+    # Calculate cost for the given duration
+    estimated_cost = (duration.to_f / 60) * min_credits_required
+    
+    # Check if user has at least the minimum required credits
+    credit_balance >= estimated_cost
+  end
+  
+  # Deduct credits from user balance
+  # @param amount [Money] Amount to deduct
+  # @return [Boolean] True if successful
+  def deduct_credits(amount)
+    return false if amount > credit_balance
+    
+    self.credit_balance -= amount
+    save!
+  end
+
   # :nocov:
   def self.ransackable_attributes(*)
     ["id", "admin", "created_at", "updated_at", "email", "stripe_customer_id", "stripe_subscription_id", "paying_customer", "credit_balance_cents", "timezone"]

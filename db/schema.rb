@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_01_174101) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_03_195707) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -61,6 +61,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_01_174101) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "call_events", force: :cascade do |t|
+    t.bigint "call_id", null: false
+    t.string "event_type"
+    t.datetime "occurred_at"
+    t.jsonb "metadata"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["call_id"], name: "index_call_events_on_call_id"
+  end
+
   create_table "call_rates", force: :cascade do |t|
     t.string "country_code", null: false
     t.string "prefix", null: false
@@ -82,6 +92,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_01_174101) do
     t.integer "cost_cents", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "failure_reason"
+    t.integer "duration"
+    t.string "twilio_sid"
+    t.datetime "end_time"
     t.index ["country_code"], name: "index_calls_on_country_code"
     t.index ["phone_number"], name: "index_calls_on_phone_number"
     t.index ["start_time"], name: "index_calls_on_start_time"
@@ -163,6 +177,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_01_174101) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "call_events", "calls"
   add_foreign_key "calls", "users"
   add_foreign_key "credit_transactions", "users"
 end

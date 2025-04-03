@@ -1,4 +1,11 @@
 Rails.application.routes.draw do
+  namespace :api do
+    # Removing auto-generated routes
+    # get "calls/create"
+    # get "calls/update"
+    # get "calls/show"
+    # get "calls/index"
+  end
   ActiveAdmin.routes(self)
 
   root 'dialer#index'
@@ -28,6 +35,19 @@ Rails.application.routes.draw do
     resources :sessions, only: [:create, :destroy] do
       collection do
         get :check
+      end
+    end
+
+    # Call management API endpoints
+    resources :calls, only: [:index, :show, :create, :update] do
+      member do
+        post :terminate
+      end
+      
+      collection do
+        post :status_callback
+        post :webhook
+        get :webhook # Allow GET for TwiML webhooks
       end
     end
 

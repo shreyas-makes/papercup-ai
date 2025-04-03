@@ -4,8 +4,7 @@ class JwtService
   
   class << self
     # Generate a JWT token for a user
-    # @param user [User] the user to create a token for
-    # @param expiry [Integer] token expiry time in seconds, defaults to 2 hours
+    # @param payload [Hash] the payload to encode (typically includes user_id)
     # @return [String] the generated JWT token
     def encode(payload)
       JWT.encode(
@@ -15,9 +14,9 @@ class JwtService
       )
     end
     
-    # Decode a JWT token and return the user
+    # Decode a JWT token and return the payload
     # @param token [String] the JWT token to decode
-    # @return [User, nil] the user if token is valid, nil otherwise
+    # @return [Hash, nil] the decoded payload if token is valid, nil otherwise
     def decode(token)
       JWT.decode(token, secret_key, true, { algorithm: ALGORITHM }).first
     rescue JWT::DecodeError
