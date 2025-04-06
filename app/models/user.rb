@@ -5,10 +5,11 @@ class User < ApplicationRecord
 
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
+         :confirmable,
          :omniauthable, omniauth_providers: [:google_oauth2]
 
   # Money-Rails integration
-  monetize :credit_balance_cents, as: "credit_balance"
+  monetize :credit_balance_cents
 
   # Associations
   has_many :calls, dependent: :nullify
@@ -65,6 +66,22 @@ class User < ApplicationRecord
     
     self.credit_balance -= amount
     save!
+  end
+
+  # Credit balance methods
+  def sufficient_balance?(amount)
+    credit_balance >= amount
+  end
+
+  def low_balance?
+    credit_balance < 500 # $5.00 threshold
+  end
+
+  def estimated_minutes_remaining
+    return Float::INFINITY if credit_balance.zero?
+    
+    average_rate = CallRate.average(:rate_per_min_cents) || 100 # Default to $1/min if no rates
+    (credit_balance / average_rate).floor
   end
 
   # :nocov:

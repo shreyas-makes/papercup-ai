@@ -1,13 +1,15 @@
 module Api
   class BaseController < ApplicationController
-    skip_forgery_protection
+    protect_from_forgery with: :null_session
+    skip_before_action :verify_authenticity_token
+    respond_to :json
+
     before_action :authenticate_user_from_token!
     
     private
     
     # Authenticate user from JWT token in header or params
     def authenticate_user_from_token!
-      # No special case for test environment - force everything to use JWT
       token = extract_token_from_request
       payload = JwtService.decode(token) if token
       
@@ -16,10 +18,10 @@ module Api
         if user
           sign_in user, store: false
         else
-          render json: { error: 'User not found' }, status: :unauthorized
+          render json: { error: 'User not found' }, status: :unauthorized and return
         end
       else
-        render json: { error: 'Unauthorized' }, status: :unauthorized unless user_signed_in?
+        render json: { error: 'Unauthorized' }, status: :unauthorized and return unless user_signed_in?
       end
     end
     
@@ -33,4 +35,4 @@ module Api
       params[:token]
     end
   end
-end 
+end

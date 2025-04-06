@@ -421,45 +421,285 @@ monitoring:
   newrelic_key: <%= ENV['NEWRELIC_KEY'] %>
 ```
 
-## Implementation Notes
+## Payment Integration with Stripe
 
-1. **First Phase Implementation**:
-   - Set up basic Rails structure with authentication
-   - Implement dialer UI with Stimulus
-   - Add credit system
-   - Basic call functionality
+### Completed Implementation
+```ruby
+# app/services/stripe_checkout_service.rb
+class StripeCheckoutService
+  def initialize(user, credit_package)
+    @user = user
+    @credit_package = credit_package
+    @stripe_api_key = Rails.configuration.stripe[:api_key]
+  end
 
-2. **Second Phase**:
-   - WebRTC integration
-   - Call quality monitoring
-   - Advanced error handling
-   - Analytics
+  def create_session
+    Stripe::Checkout::Session.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: "#{@credit_package.name} Credit Package"
+          },
+          unit_amount: @credit_package.price_cents
+        },
+        quantity: 1
+      }],
+      mode: 'payment',
+      success_url: "#{Rails.configuration.stripe[:success_url]}?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: Rails.configuration.stripe[:cancel_url],
+      metadata: {
+        user_id: @user.id,
+        credit_package_id: @credit_package.id
+      }
+    })
+  end
+end
 
-3. **Third Phase**:
-   - Call recording features
-   - Advanced billing
-   - International number formatting
-   - Performance optimizations
+# app/controllers/api/credits_controller.rb
+module Api
+  class CreditsController < BaseController
+    before_action :authenticate_user_from_token!
 
-Would you like me to detail any specific section further or proceed with additional implementation details?
+    # GET /api/credits (Transaction History)
+    def index
+      transactions = current_user.credit_transactions.order(created_at: :desc)
+      render json: transactions
+    end
 
-# config/initializers/webrtc.rb
-Papercup::Application.config.webrtc = {
-  stun_servers: ['stun:stun.l.google.com:19302']
-}
+    # GET /api/credits/show (Balance and Packages)
+    def show
+      render json: {
+        balance: current_user.credit_balance,
+        packages: CreditPackage.active
+      }
+    end
 
-# app/services/rate_import_service.rb
-class RateImportService
-  def self.import(csv_file)
-    CSV.foreach(csv_file.path, headers: true) do |row|
-      CallRate.create!(
-        country_code: row['country_code'],
-        prefix: row['prefix'],
-        rate_per_min_cents: (row['rate'].to_f * 100).to_i
-      )
+    # POST /api/credits/create_checkout_session
+    def create_checkout_session
+      credit_package = CreditPackage.find(params[:package_id])
+      
+      begin
+        service = StripeCheckoutService.new(current_user, credit_package)
+        session = service.create_session
+        render json: { id: session.id }
+      rescue Stripe::InvalidRequestError => e
+        render json: { error: e.message }, status: :unprocessable_entity
+      rescue StandardError => e
+        Rails.logger.error "Checkout Session creation failed: #{e.message}"
+        render json: { error: 'Could not create checkout session.' }, status: :internal_server_error
+      end
+    end
+
+    private
+
+    def handle_successful_payment(session)
+      user = User.find(session.metadata.user_id)
+      credit_package = CreditPackage.find(session.metadata.credit_package_id)
+
+      ActiveRecord::Base.transaction do
+        user.with_lock do
+          user.increment!(:credit_balance, credit_package.amount_cents)
+          
+          CreditTransaction.create!(
+            user: user,
+            amount_cents: credit_package.amount_cents,
+            transaction_type: 'deposit',
+            stripe_payment_id: session.payment_intent
+          )
+        end
+      end
+    rescue ActiveRecord::RecordNotFound => e
+      Rails.logger.error "Failed to process payment: #{e.message}"
     end
   end
 end
+
+# app/controllers/api/stripe_webhooks_controller.rb
+module Api
+  class StripeWebhooksController < ApplicationController
+    skip_before_action :verify_authenticity_token
+
+    def create
+      begin
+        event = self.event
+        
+        case event.type
+        when 'checkout.session.completed'
+          handle_checkout_session_completed(event.data.object)
+        end
+
+        render json: { received: true }
+      rescue JSON::ParserError
+        render json: { error: 'Invalid payload' }, status: :bad_request
+      rescue Stripe::SignatureVerificationError => e
+        render json: { error: e.message }, status: :bad_request
+      end
+    end
+
+    private
+
+    def event
+      payload = request.raw_post
+      sig_header = request.env['HTTP_STRIPE_SIGNATURE']
+      webhook_secret = Rails.configuration.stripe[:webhook_secret]
+      
+      Stripe::Webhook.construct_event(
+        payload, sig_header, webhook_secret
+      )
+    end
+
+    def handle_checkout_session_completed(session)
+      user_id = session.metadata['user_id']
+      credit_package_id = session.metadata['credit_package_id']
+      
+      user = User.find(user_id)
+      credit_package = CreditPackage.find(credit_package_id)
+      
+      ActiveRecord::Base.transaction do
+        user.with_lock do
+          user.increment!(:credit_balance_cents, credit_package.amount_cents)
+          
+          CreditTransaction.create!(
+            user: user,
+            amount_cents: credit_package.amount_cents,
+            transaction_type: 'deposit',
+            stripe_payment_id: session.payment_intent,
+            metadata: { 'credit_package_id' => credit_package.id }
+          )
+        end
+      end
+    end
+  end
+end
+```
+
+### Authentication Approach
+```ruby
+# app/controllers/api/base_controller.rb
+module Api
+  class BaseController < ApplicationController
+    include TokenAuthenticatable
+    
+    protect_from_forgery with: :null_session
+    
+    respond_to :json
+    
+    rescue_from ActiveRecord::RecordNotFound, with: :not_found
+    
+    private
+    
+    def not_found
+      render json: { error: 'Record not found' }, status: :not_found
+    end
+  end
+end
+
+# app/controllers/concerns/token_authenticatable.rb
+module TokenAuthenticatable
+  extend ActiveSupport::Concern
+
+  included do
+    before_action :authenticate_user_from_token!
+  end
+
+  def authenticate_user_from_token!
+    token = extract_token_from_request
+    
+    if token.present?
+      payload = JwtService.decode(token)
+      @current_user = User.find_by(id: payload['user_id']) if payload
+    end
+    
+    unless current_user
+      render json: { error: 'Unauthorized' }, status: :unauthorized
+    end
+  end
+
+  def current_user
+    @current_user
+  end
+
+  private
+
+  def extract_token_from_request
+    auth_header = request.headers['Authorization']
+    return nil unless auth_header.present?
+    
+    auth_header.split(' ').last
+  end
+end
+```
+
+### Testing Approach
+
+The system uses two complementary testing approaches:
+
+1. **Direct Controller Method Testing**
+   - Stubs external dependencies like Stripe API
+   - Tests individual controller methods in isolation
+   - Checks correct rendering of responses
+
+2. **Integration Testing**
+   - Tests the webhook processing flow
+   - Validates credit additions to user accounts
+   - Verifies transaction creation
+   - Handles error cases
+
+#### Sample Test Implementation
+```ruby
+# spec/requests/api/credits_spec.rb
+RSpec.describe "Api::Credits", type: :request do
+  # Test the controller methods directly
+  describe "CreditsController methods" do
+    let(:controller) { Api::CreditsController.new }
+    let(:user) { create(:user, credit_balance_cents: 1000) }
+    
+    before do
+      # Setup controller
+      allow(controller).to receive(:current_user).and_return(user)
+      allow(controller).to receive(:params).and_return({})
+      allow(controller).to receive(:render)
+    end
+    
+    it "index returns the user's credit transactions in descending order" do
+      expect(controller).to receive(:render).with(json: [transaction2, transaction1])
+      controller.index
+    end
+    
+    it "create_checkout_session returns a successful checkout session" do
+      expect(service).to receive(:create_session).and_return(stripe_session)
+      expect(controller).to receive(:render).with(json: { id: 'cs_test_123' })
+      controller.create_checkout_session
+    end
+  end
+end
+```
+
+### Credit Transaction Model
+```ruby
+# app/models/credit_transaction.rb
+class CreditTransaction < ApplicationRecord
+  belongs_to :user
+  
+  validates :transaction_type, presence: true, 
+    inclusion: { in: %w[deposit withdrawal call_charge refund] }
+  validates :amount_cents, presence: true
+  validates :stripe_payment_id, presence: true, if: -> { transaction_type == 'deposit' }
+  
+  scope :deposits, -> { where(transaction_type: 'deposit') }
+  scope :withdrawals, -> { where(transaction_type: 'withdrawal') }
+  scope :charges, -> { where(transaction_type: 'call_charge') }
+  scope :recent, -> { order(created_at: :desc).limit(10) }
+  
+  # Use Money-Rails integration
+  monetize :amount_cents
+  
+  # Store additional data
+  store_accessor :metadata, :credit_package_id
+end
+```
 
 ## 13. UI/UX Specifications
 

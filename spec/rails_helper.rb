@@ -120,7 +120,4 @@ RSpec.configure do |config|
       Rails.application.credentials.secret_key_base
     )
   end
-
-  # Add this line to include Devise test helpers
-  config.include Devise::Test::IntegrationHelpers, type: :request
 end

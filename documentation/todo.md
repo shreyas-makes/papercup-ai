@@ -27,12 +27,11 @@ This checklist covers all aspects of implementing the Papercup browser-based int
 - [x] Create basic layout structure
 - [x] Configure environment variables
 - [x] Setup Git repository
-
 ### Dependency Installation
 - [ ] Install core Rails gems
   - [ ] webrtc-rails
   - [x] twilio-ruby
-  - [ ] stripe
+  - [x] stripe
   - [x] devise
   - [ ] omniauth-google-oauth2
   - [ ] sidekiq
@@ -357,28 +356,28 @@ This checklist covers all aspects of implementing the Papercup browser-based int
 ## Payment Integration
 
 ### Stripe Setup
-- [ ] Configure Stripe API
-  - [ ] Add API keys
-  - [ ] Setup webhook endpoint
-  - [ ] Configure products/prices
-- [ ] Implement Checkout flow
-  - [ ] Create session generation
-  - [ ] Add success/cancel handling
-  - [ ] Implement webhook processing
-- [ ] Build credit packages
-  - [ ] Create three-tier system
-  - [ ] Add database models
-  - [ ] Implement selection UI
+- [x] Configure Stripe API
+  - [x] Add API keys
+  - [x] Setup webhook endpoint
+  - [x] Configure products/prices
+- [x] Implement Checkout flow
+  - [x] Create session generation
+  - [x] Add success/cancel handling
+  - [x] Implement webhook processing
+- [x] Build credit packages
+  - [x] Create three-tier system
+  - [x] Add database models
+  - [x] Implement selection UI
 
 ### Transaction Management
-- [ ] Create transaction service
-  - [ ] Implement credit addition
-  - [ ] Add credit deduction
-  - [ ] Create history tracking
-- [ ] Build reporting functionality
-  - [ ] Add transaction listing
-  - [ ] Create filters/sorting
-  - [ ] Implement export
+- [x] Create transaction service
+  - [x] Implement credit addition
+  - [x] Add credit deduction
+  - [x] Create history tracking
+- [x] Build reporting functionality
+  - [x] Add transaction listing
+  - [x] Create filters/sorting
+  - [x] Implement export
 
 ## Testing
 
@@ -392,10 +391,11 @@ This checklist covers all aspects of implementing the Papercup browser-based int
   - [x] Test CreditService
   - [x] Test CallCostCalculator
   - [x] Test CallCompletionService
-- [ ] Implement controller tests
-  - [ ] Test Calls controller
-  - [ ] Test Credits controller
-  - [ ] Test WebRTC controller
+  - [x] Test CreditTransactionService
+- [x] Implement controller tests
+  - [x] Test Calls controller
+  - [x] Test Credits controller
+  - [x] Test WebRTC controller
 
 ### Integration Tests
 - [ ] Create authentication flow tests
@@ -406,10 +406,10 @@ This checklist covers all aspects of implementing the Papercup browser-based int
   - [ ] Test call initiation
   - [ ] Test call progress
   - [ ] Test call completion
-- [ ] Build payment flow tests
-  - [ ] Test credit purchase
-  - [ ] Test webhook processing
-  - [ ] Test balance updates
+- [x] Build payment flow tests
+  - [x] Test credit purchase
+  - [x] Test webhook processing
+  - [x] Test balance updates
 
 ### Frontend Tests
 - [x] Write Stimulus controller tests

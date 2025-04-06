@@ -28,7 +28,8 @@ gem 'rename', '1.1.3', git: 'https://github.com/ryanckulp/rename' # remove this 
 gem 'split', require: 'split/dashboard'
 gem 'sprockets-rails'
 gem 'stimulus-rails'
-gem 'stripe'
+# Payment processing
+gem 'stripe', '~> 10.1.0'
 gem 'tailwindcss-rails'
 gem 'turbo-rails'
 gem 'omniauth-google-oauth2'

@@ -2,9 +2,11 @@ FactoryBot.define do
   factory :user do
     sequence(:email) { |n| "user#{n}@example.com" }
     password { 'password123' }
+    password_confirmation { 'password123' }
     name { "Test User" }
     paying_customer { false }
-    credit_balance_cents { 0 }
+    credit_balance_cents { 1000 }
+    confirmed_at { Time.current }
     timezone { 'UTC' }
     
     # Add traits for OmniAuth users
@@ -28,6 +30,10 @@ FactoryBot.define do
     
     trait :eu_timezone do
       timezone { 'Europe/London' }
+    end
+    
+    trait :with_stripe do
+      stripe_customer_id { "cus_#{SecureRandom.hex(12)}" }
     end
   end
 end

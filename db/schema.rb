@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_03_195707) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_05_225723) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -103,6 +103,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_03_195707) do
     t.index ["user_id"], name: "index_calls_on_user_id"
   end
 
+  create_table "credit_packages", force: :cascade do |t|
+    t.string "name"
+    t.integer "amount_cents"
+    t.integer "price_cents"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "credit_transactions", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.integer "amount_cents", null: false
@@ -110,6 +118,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_03_195707) do
     t.string "stripe_payment_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "metadata"
     t.index ["stripe_payment_id"], name: "index_credit_transactions_on_stripe_payment_id"
     t.index ["transaction_type"], name: "index_credit_transactions_on_transaction_type"
     t.index ["user_id"], name: "index_credit_transactions_on_user_id"
@@ -170,6 +179,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_03_195707) do
     t.string "token"
     t.string "refresh_token"
     t.datetime "oauth_expires_at"
+    t.string "confirmation_token"
+    t.datetime "confirmed_at"
+    t.datetime "confirmation_sent_at"
+    t.string "unconfirmed_email"
+    t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["credit_balance_cents"], name: "index_users_on_credit_balance_cents"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true

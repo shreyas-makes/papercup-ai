@@ -1,0 +1,79 @@
+# Papercup Project - AI Rules
+
+## General Code Standards
+- Use 2-space indentation for all code files
+- Follow Rails naming conventions (snake_case for Ruby, camelCase for JavaScript)
+- Maximum line length of 100 characters
+- Include typed parameters where possible
+- Always include docstring comments for methods with complex logic
+- for running the rails app, always use `bin/dev`
+
+## Frontend Rules
+- Use Work Sans font family for all UI components
+- Follow the defined color scheme (#000000, #FFFFFF, #FFD700, #4CAF50, #FF4444, #F5F5F5, #333333)
+- Use Stimulus controllers for all interactive components
+- Prefer data attributes for Stimulus targets over IDs
+- Always use Turbo for navigation where appropriate
+- Use Tailwind CSS utility classes - avoid custom CSS when possible
+- Include mobile responsiveness for all components
+- Structure JavaScript with modules (avoid global scope)
+
+## Backend Rules
+- Follow the frontend-first development approach
+- Create service objects for complex business logic
+- Use Active Record scopes for common queries
+- Implement Money-Rails for all currency fields
+- All database operations involving credits must be atomic
+- Use background jobs (Sidekiq) for all processing that takes >100ms
+- All WebRTC operations should be logged with appropriate detail
+- Add appropriate database indexes for fields used in queries
+
+## API Design
+- Use RESTful routing conventions
+- API responses should follow JSON:API specification
+- Include appropriate HTTP status codes
+- Implement proper error handling and messaging
+- All API endpoints must include authentication checks
+- Rate limiting for all public-facing endpoints
+
+## Testing Requirements
+- All models must have comprehensive RSpec tests
+- Controllers need request specs covering happy and error paths
+- All Stimulus controllers need JavaScript tests
+- Include system tests for critical user flows:
+  - Dialer functionality
+  - Call initiation and handling
+  - Payment processing
+  - Authentication flow
+
+## Security Considerations
+- Sanitize all user inputs
+- Validate all incoming phone numbers with phonelib
+- Secure WebRTC tokens with short expiration
+- Implement CSRF protection on all forms
+- Use secure_headers gem for security headers
+- Avoid storing sensitive data in localStorage
+- Always use parameterized queries for database operations
+
+## WebRTC Specific
+- Always use secure connections (SRTP/DTLS)
+- Include STUN/TURN server configuration
+- Handle browser permissions explicitly
+- Graceful degradation for unsupported browsers
+- Monitor and log connection quality metrics
+- Implement proper cleanup of media resources
+
+## Deployment Considerations
+- Configure for Hetzner Cloud and Hatchbox
+- Optimize media server configuration for low latency
+- Use proper environment variables for all configuration
+- Include database migration safety checks
+- Configure for zero-downtime deployment
+- Include health check endpoints
+
+## Documentation Requirements
+- Comment all WebRTC-related code with detailed explanations
+- Document all environment variables
+- Include JSDoc for all JavaScript functions
+- Add inline documentation for complex UI interactions
+- Document all service objects with examples

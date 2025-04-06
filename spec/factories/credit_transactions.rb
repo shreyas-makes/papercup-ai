@@ -1,9 +1,9 @@
 FactoryBot.define do
   factory :credit_transaction do
     association :user
-    amount_cents { rand(100..10000) }
-    transaction_type { CreditTransaction::TYPES.sample }
-    stripe_payment_id { nil }
+    amount_cents { 1000 }
+    transaction_type { %w[deposit withdrawal call_charge refund].sample }
+    stripe_payment_id { "pi_#{SecureRandom.hex(12)}" }
     
     trait :deposit do
       transaction_type { 'deposit' }

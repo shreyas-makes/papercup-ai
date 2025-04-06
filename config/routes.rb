@@ -1,5 +1,15 @@
 Rails.application.routes.draw do
   namespace :api do
+    get "stripe_webhooks/create"
+    post 'stripe_webhooks', to: 'stripe_webhooks#create'
+    get "credits/create"
+    get "credits/show"
+    resources :credits, only: [:index, :show] do
+      collection do
+        post :create_checkout_session
+        post :webhook
+      end
+    end
     # Removing auto-generated routes
     # get "calls/create"
     # get "calls/update"
