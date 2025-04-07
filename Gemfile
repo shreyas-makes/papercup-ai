@@ -29,7 +29,7 @@ gem 'split', require: 'split/dashboard'
 gem 'sprockets-rails'
 gem 'stimulus-rails'
 # Payment processing
-gem 'stripe', '~> 10.1.0'
+gem 'stripe', '~> 14.0.0'
 gem 'tailwindcss-rails'
 gem 'turbo-rails'
 gem 'omniauth-google-oauth2'
