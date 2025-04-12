@@ -1,0 +1,209 @@
+<div class="bg-white">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div class="sm:flex sm:items-center">
+      <div class="sm:flex-auto">
+        <h1 class="text-2xl font-semibold text-gray-900">Your Call Analytics</h1>
+        <p class="mt-2 text-sm text-gray-700">
+          Review your call history, quality metrics, and usage patterns.
+        </p>
+      </div>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+              <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dt class="text-sm font-medium text-gray-500 truncate">Total Calls</dt>
+              <dd class="flex items-baseline">
+                <div class="text-2xl font-semibold text-gray-900"><%= @stats[:total_calls] %></div>
+              </dd>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+              <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dt class="text-sm font-medium text-gray-500 truncate">Recent Calls</dt>
+              <dd class="flex items-baseline">
+                <div class="text-2xl font-semibold text-gray-900"><%= @stats[:recent_calls] %></div>
+              </dd>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+              <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dt class="text-sm font-medium text-gray-500 truncate">Total Talk Time</dt>
+              <dd class="flex items-baseline">
+                <div class="text-2xl font-semibold text-gray-900"><%= (@stats[:total_duration] / 60).round %> min</div>
+              </dd>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+              <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <dt class="text-sm font-medium text-gray-500 truncate">Average Call Quality</dt>
+              <dd class="flex items-baseline">
+                <div class="text-2xl font-semibold text-gray-900"><%= @stats[:average_quality].to_s.titleize %></div>
+              </dd>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date Range Picker -->
+    <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Date Range</h3>
+        <div class="mt-2 max-w-xl text-sm text-gray-500">
+          <p>Select a date range for the analytics data</p>
+        </div>
+        <form action="<%= user_analytics_path %>" method="get" class="mt-5 sm:flex sm:items-center" data-controller="date-range" data-action="submit->date-range#updateCharts">
+          <div class="w-full sm:max-w-xs">
+            <label for="start_date" class="sr-only">Start Date</label>
+            <input type="date" name="start_date" id="start_date" value="<%= 30.days.ago.strftime('%Y-%m-%d') %>" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+          </div>
+          <div class="w-full sm:max-w-xs mt-3 sm:mt-0 sm:ml-4">
+            <label for="end_date" class="sr-only">End Date</label>
+            <input type="date" name="end_date" id="end_date" value="<%= Date.today.strftime('%Y-%m-%d') %>" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+          </div>
+          <button type="submit" class="mt-3 sm:mt-0 sm:ml-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Apply</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Call Volume</h3>
+          <div class="h-64 mt-4">
+            <canvas data-controller="analytics-chart" 
+                    data-analytics-chart-type-value="call_volume"
+                    data-analytics-chart-url-value="<%= call_volume_api_analytics_path %>"
+                    data-analytics-chart-start-date-value="<%= 30.days.ago.strftime('%Y-%m-%d') %>"
+                    data-analytics-chart-end-date-value="<%= Date.today.strftime('%Y-%m-%d') %>"
+                    data-analytics-chart-target="canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Call Quality</h3>
+          <div class="h-64 mt-4">
+            <canvas data-controller="analytics-chart" 
+                    data-analytics-chart-type-value="call_quality"
+                    data-analytics-chart-url-value="<%= call_quality_api_analytics_path %>"
+                    data-analytics-chart-start-date-value="<%= 30.days.ago.strftime('%Y-%m-%d') %>"
+                    data-analytics-chart-end-date-value="<%= Date.today.strftime('%Y-%m-%d') %>"
+                    data-analytics-chart-target="canvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top destinations -->
+    <div class="mt-8 bg-white shadow sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Top Destinations</h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">Your most frequently called destinations</p>
+      </div>
+      <div class="px-4 py-5 sm:p-6">
+        <div class="h-64">
+          <canvas data-controller="analytics-chart" 
+                  data-analytics-chart-type-value="destinations"
+                  data-analytics-chart-url-value="<%= destinations_api_analytics_path %>"
+                  data-analytics-chart-target="canvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent calls -->
+    <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Calls</h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">Your latest call activity</p>
+      </div>
+      <div class="border-t border-gray-200">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date/Time</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Number</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quality</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% current_user.calls.recent.limit(10).each do |call| %>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= call.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><%= call.phone_number %></td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= call.country_code %></td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><%= "#{call.duration.to_i} sec" %></td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      <%= call.status == 'completed' ? 'bg-green-100 text-green-800' : 
+                          call.status == 'dropped' ? 'bg-red-100 text-red-800' : 
+                          'bg-yellow-100 text-yellow-800' %>">
+                      <%= call.status.titleize %>
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      <%= case call.quality_rating
+                          when :excellent then 'bg-green-100 text-green-800'
+                          when :good then 'bg-green-100 text-green-800'
+                          when :fair then 'bg-yellow-100 text-yellow-800'
+                          when :poor, :bad then 'bg-red-100 text-red-800'
+                          else 'bg-gray-100 text-gray-800'
+                          end %>">
+                      <%= call.quality_rating.to_s.titleize %>
+                    </span>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

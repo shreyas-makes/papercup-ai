@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { authApi, creditApi } from "../services/mockApi"
+import api from "../services/api"
 
 /**
  * Global application controller
@@ -66,15 +66,44 @@ export default class extends Controller {
    */
   async checkAuthState() {
     try {
-      const { authenticated, credits } = await authApi.checkAuth()
-      console.log("Auth state:", authenticated, credits)
-      this.authenticatedValue = authenticated
-      this.creditsValue = credits
+      // Check if user has a valid auth token
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        try {
+          // Call the real API to verify token
+          const response = await fetch('/api/v1/auth/me', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log("Auth state:", data);
+            this.authenticatedValue = true;
+            this.creditsValue = data.user.credit_balance_cents / 100;
+          } else {
+            // Token is invalid, clear it
+            localStorage.removeItem('auth_token');
+            this.authenticatedValue = false;
+            this.creditsValue = 0;
+          }
+        } catch (error) {
+          console.error('Failed to verify token:', error);
+          this.authenticatedValue = false;
+          this.creditsValue = 0;
+        }
+      } else {
+        this.authenticatedValue = false;
+        this.creditsValue = 0;
+      }
       
       // Broadcast updated state
-      this.broadcastState()
+      this.broadcastState();
     } catch (error) {
-      console.error('Failed to check auth state:', error)
+      console.error('Failed to check auth state:', error);
     }
   }
   
@@ -82,11 +111,21 @@ export default class extends Controller {
    * Handle successful login
    */
   handleLogin(event) {
-    console.log("Login event:", event.detail)
+    console.log("Login event received, fetching balance...")
     this.authenticatedValue = true
-    this.creditsValue = event.detail.credits
     
-    // Broadcast updated state
+    // Fetch balance after login
+    api.getBalance().then(data => {
+      console.log("Fetched balance after login:", data.balance)
+      this.creditsValue = data.balance
+      this.broadcastState()
+    }).catch(error => {
+      console.error("Error fetching balance after login:", error)
+      // Handle error appropriately, maybe show a notification
+      this.showError("Could not update balance after login.")
+    })
+    
+    // Broadcast initial state update immediately
     this.broadcastState()
   }
   
@@ -327,5 +366,17 @@ export default class extends Controller {
         controller.close()
       }
     })
+  }
+  
+  /**
+   * Show an error notification
+   */
+  showError(message) {
+    document.dispatchEvent(new CustomEvent('papercup:show-notification', {
+      detail: {
+        type: 'error',
+        message: message
+      }
+    }));
   }
 } 

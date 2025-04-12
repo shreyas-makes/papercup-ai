@@ -196,6 +196,9 @@ GEM
     formtastic (5.0.0)
       actionpack (>= 6.0.0)
     formtastic_i18n (0.7.0)
+    get_process_mem (1.0.0)
+      bigdecimal (>= 2.0)
+      ffi (~> 1.0)
     globalid (1.2.1)
       activesupport (>= 6.1)
     groupdate (6.5.1)
@@ -466,10 +469,24 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
+    sentry-rails (5.23.0)
+      railties (>= 5.0)
+      sentry-ruby (~> 5.23.0)
+    sentry-ruby (5.23.0)
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+    sentry-sidekiq (5.23.0)
+      sentry-ruby (~> 5.23.0)
+      sidekiq (>= 3.0)
     shoulda-callback-matchers (1.1.4)
       activesupport (>= 3)
     shoulda-matchers (6.4.0)
       activesupport (>= 5.2.0)
+    sidekiq (7.2.4)
+      concurrent-ruby (< 2)
+      connection_pool (>= 2.3.0)
+      rack (>= 2.2.4)
+      redis-client (>= 0.19.0)
     simplecov (0.22.0)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
@@ -578,6 +595,7 @@ DEPENDENCIES
   dotenv-rails
   factory_bot_rails
   faker
+  get_process_mem
   groupdate
   honeypot-captcha!
   httparty
@@ -607,8 +625,12 @@ DEPENDENCIES
   rubocop-rails
   rubocop-rspec
   selenium-webdriver
+  sentry-rails
+  sentry-ruby
+  sentry-sidekiq
   shoulda-callback-matchers
   shoulda-matchers
+  sidekiq (~> 7.2.0)
   simplecov
   simplecov-tailwindcss
   split

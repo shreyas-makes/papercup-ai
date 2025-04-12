@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus"
-import { debugApi, authApi, creditApi } from "../services/mockApi"
 
 /**
  * Debug panel controller for development testing
@@ -22,6 +21,36 @@ export default class extends Controller {
     document.addEventListener('keydown', this.handleKeyDown.bind(this))
     
     console.log("Debug panel controller connected")
+    
+    // Log all custom events
+    const eventTypes = [
+      'papercup:login',
+      'papercup:logout',
+      'papercup:call-started',
+      'papercup:call-ended',
+      'papercup:call-status-changed',
+      'papercup:credits-updated',
+      'papercup:show-notification',
+      'papercup:show-modal',
+      'papercup:hide-modal',
+      'papercup:show-toast',
+      'papercup:state-update'
+    ]
+    
+    eventTypes.forEach(eventType => {
+      document.addEventListener(eventType, (event) => {
+        console.log(`EVENT FIRED: ${eventType}`, event.detail)
+      })
+    })
+    
+    // Add click debugging for all buttons
+    document.addEventListener('click', (event) => {
+      if (event.target.closest('button')) {
+        const button = event.target.closest('button')
+        console.log('Button clicked:', button)
+        console.log('Button data attributes:', button.dataset)
+      }
+    }, true)
   }
   
   disconnect() {
@@ -38,177 +67,5 @@ export default class extends Controller {
   
   togglePanel() {
     this.panelTarget.classList.toggle("hidden")
-  }
-  
-  /**
-   * Set a custom credit balance for testing
-   */
-  async setCredits(event) {
-    event.preventDefault()
-    
-    const amount = parseFloat(this.creditInputTarget.value)
-    
-    if (isNaN(amount) || amount < 0) {
-      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-        detail: { 
-          type: 'warning',
-          message: "Please enter a valid credit amount" 
-        }
-      }))
-      return
-    }
-    
-    try {
-      const result = await debugApi.setCredits(amount)
-      
-      // Update global state
-      document.dispatchEvent(new CustomEvent('papercup:credits-updated', {
-        detail: { credits: result.newBalance }
-      }))
-      
-      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-        detail: { 
-          type: 'success',
-          title: 'Credits Updated',
-          message: `Credit balance set to $${result.newBalance.toFixed(2)}` 
-        }
-      }))
-    } catch (error) {
-      console.error("Error setting credits:", error)
-    }
-  }
-  
-  /**
-   * Reset all call history
-   */
-  async resetCalls(event) {
-    event.preventDefault()
-    
-    try {
-      await debugApi.resetCalls()
-      
-      // Refresh call history controllers
-      document.dispatchEvent(new CustomEvent('papercup:call-history-reset'))
-      
-      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-        detail: { 
-          type: 'info',
-          title: 'History Reset',
-          message: "Call history has been reset" 
-        }
-      }))
-    } catch (error) {
-      console.error("Error resetting calls:", error)
-    }
-  }
-  
-  /**
-   * Trigger a specific error for testing error handling
-   */
-  async triggerError(event) {
-    event.preventDefault()
-    
-    const errorType = this.errorTypeSelectTarget.value
-    
-    try {
-      await debugApi.triggerError(errorType)
-    } catch (error) {
-      // This will always trigger an error - that's the point
-      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-        detail: { 
-          type: 'error',
-          title: 'Test Error',
-          message: error.message 
-        }
-      }))
-    }
-  }
-  
-  /**
-   * Toggle authentication status (login/logout)
-   */
-  async toggleAuth(event) {
-    event.preventDefault()
-    console.log("Toggle auth clicked")
-    
-    const isAuthenticated = localStorage.getItem('papercup_auth') === 'true'
-    console.log("Current auth state:", isAuthenticated)
-    
-    if (isAuthenticated) {
-      // Log out
-      await authApi.logout()
-      console.log("Logged out")
-      
-      document.dispatchEvent(new CustomEvent('papercup:logout'))
-      
-      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-        detail: { 
-          type: 'info',
-          title: 'Logged Out',
-          message: "Logged out successfully" 
-        }
-      }))
-    } else {
-      // Log in
-      try {
-        const response = await authApi.login('test@example.com', 'password')
-        console.log("Logged in", response)
-        
-        document.dispatchEvent(new CustomEvent('papercup:login', {
-          detail: {
-            user: response.user,
-            credits: response.credits
-          }
-        }))
-        
-        document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-          detail: { 
-            type: 'success',
-            title: 'Logged In',
-            message: "Logged in successfully" 
-          }
-        }))
-      } catch (error) {
-        document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-          detail: { 
-            type: 'error',
-            message: error.message 
-          }
-        }))
-      }
-    }
-  }
-  
-  /**
-   * Add test credits
-   */
-  async addTestCredits(event) {
-    event.preventDefault()
-    
-    try {
-      const amount = 10
-      const result = await creditApi.addCredits(amount)
-      
-      // Update global state
-      document.dispatchEvent(new CustomEvent('papercup:credits-updated', {
-        detail: { credits: result.newBalance }
-      }))
-      
-      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-        detail: { 
-          type: 'success',
-          title: 'Credits Added',
-          message: `Added $${amount.toFixed(2)} credits. New balance: $${result.newBalance.toFixed(2)}` 
-        }
-      }))
-    } catch (error) {
-      console.error("Error adding credits:", error)
-      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-        detail: { 
-          type: 'error',
-          message: error.message 
-        }
-      }))
-    }
   }
 } 

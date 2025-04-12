@@ -1,195 +1,125 @@
-# Papercup
+# Papercup - WebRTC Calling Application
 
-Papercup is a WebRTC-based communication platform built with Ruby on Rails, enabling high-quality voice calls with advanced call management features.
+Papercup is a web application that allows users to make international calls using WebRTC technology. The application is built with Ruby on Rails and uses Stimulus.js for frontend interactivity.
 
 ## Features
 
-- WebRTC-powered voice calling with low latency
-- Secure payment processing with Money-Rails
-- User authentication and account management
-- Interactive dialer functionality
-- Call initiation, handling, and quality monitoring
-- Mobile-responsive UI built with Tailwind CSS
-- Background job processing via Sidekiq
+- User authentication (login/registration)
+- Credit package selection and purchase
+- WebRTC calling functionality
+- Call history tracking
+- Real-time updates with ActionCable
 
-## Changelog
+## Tech Stack
 
-### April 3, 2025 - WebRTC Backend Foundation
-
-We've established the backend infrastructure for WebRTC communication in the Papercup platform. This included creating a robust configuration initializer with multiple Google STUN servers, developing a secure JWT-based token generation service with built-in expiration, and adding a properly authenticated token API endpoint. To enable real-time communication, we implemented ActionCable channels for WebRTC signaling and designed service classes for connection handling and call routing. Integration with Twilio was completed by adding the twilio-ruby gem and creating a service for outbound PSTN calls, along with configuring the necessary environment variables. We also developed a testing framework with a browser-based interface to validate the token generation functionality.
-
-### April 1, 2025 - User Authentication Enhancements
-
-The Google OAuth integration was significantly improved with more robust error handling and user flow optimizations. We enhanced the authentication process to distinguish between login and signup scenarios with contextual button labels and appropriate redirects. The user model's OAuth handling was streamlined to store only necessary user information from Google profiles, and we implemented proper session management to prevent authentication conflicts.
-
-### March 31, 2025 - Call Processing and Notifications
-
-We implemented a comprehensive notification system throughout the application with different notification types for various scenarios. This included success notifications for completed actions, warning notifications for low credit balances, and error notifications for failed operations. The notification components were designed with auto-dismiss functionality and appropriate visual styling based on the message type. Additionally, we fixed issues with the call initiation process after login, ensuring proper outlet connections and event handling.
-
-### March 30, 2025 - Active Call Interface
-
-The active call screen was fully implemented with a visually appealing overlay that centers perfectly on the screen. The interface includes all specified components: the dialed phone number display, a functional duration timer, current credit balance indicator, and a prominent red end call button. Animations were added for smooth transitions between calling states, and we ensured proper mobile responsiveness. The interface was carefully designed to balance aesthetics with usability, providing clear visual feedback during active calls.
-
-### March 29, 2025 - Call History and Error States
-
-We created a complete call history section with a Stimulus controller that displays past calls in a scrollable list. Each call entry shows the phone number, date/time, duration, and country flag when available. The history component includes a "No calls yet" message for new users and offers one-click redial functionality. Additionally, we implemented various error states and feedback mechanisms throughout the application, including loading spinners, disabled states for buttons during processing, and appropriate error notifications for failed operations.
-
-### March 28, 2025 - Core Database Models
-
-The foundation of the application's data structure was established by creating and implementing all the necessary database models. We developed the User model with Devise integration, the Call model for tracking call details, the CreditTransaction model for financial operations, and the CallRate model for determining call pricing. Money-Rails was integrated for handling currency fields, and we created service objects for managing credit operations and call completions. Comprehensive testing was implemented for all models and services to ensure reliability and data integrity.
-
-### March 27, 2025 - Keypad Enhancement and Keyboard Support
-
-The dialer keypad was enhanced with full keyboard support, allowing users to input phone numbers using their physical keyboard in addition to the on-screen keypad. We implemented event listeners for both number keys and special keys like backspace and enter, maintaining visual feedback when keys are pressed. This implementation ensures a seamless experience across different input methods while preserving the existing validation and formatting rules. The keyboard support was carefully integrated to feel natural and intuitive, improving accessibility and user efficiency during call initiation.
-
-### March 26, 2025 - Country Selector and Phone Input Implementation
-
-We completed the country selector and phone input components, which form the core of the dialer interface. The country selector was implemented as a searchable dropdown with flags and country codes, allowing users to quickly find and select their desired country. The phone input field features real-time formatting as users type, complete with a clear button for easy correction. We refined the design to follow modern UI standards by removing letters under numbers on the keypad, focusing on a clean, efficient interface. These components work together seamlessly, ensuring proper phone number validation and formatting based on the selected country.
-
-### March 25, 2025 - Initial Rails Application Setup
-
-The Papercup project was initialized with Rails 8 using the specified technology stack. We configured the application with PostgreSQL for the database, Redis for background job processing, and set up the frontend framework with Stimulus.js, Turbo, and Tailwind CSS. The initial application structure was established with proper environment configuration, including development and test environments. We implemented the Work Sans font family throughout the interface and created the basic layout structure following the design specifications. This foundation set the stage for the modular, component-based development approach that would follow.
-
-## Technology Stack
-
-- **Frontend**: Stimulus, Turbo, Tailwind CSS
 - **Backend**: Ruby on Rails
+- **Frontend**: Stimulus.js, Tailwind CSS
+- **Real-time Communication**: ActionCable
+- **WebRTC**: Twilio
+- **Payment Processing**: Stripe
 - **Database**: PostgreSQL
-- **Background Jobs**: Sidekiq
-- **Real-time Communication**: WebRTC
-- **Payment Processing**: Money-Rails
-- **Deployment**: Hetzner Cloud, Hatchbox
 
-## Environment Setup
+## Project Structure
 
-### Prerequisites
+### Frontend
 
-- Ruby 3.3.5
-- Rails 8.0.0
-- PostgreSQL
-- Redis (for Sidekiq)
+- `app/javascript/controllers/`: Stimulus controllers
+- `app/javascript/services/`: JavaScript services
+- `app/javascript/channels/`: ActionCable channels
+- `app/views/`: ERB templates
 
-### Environment Variables
+### Backend
 
-Papercup uses environment variables for configuration. For local development:
+- `app/controllers/`: Rails controllers
+- `app/models/`: Rails models
+- `app/services/`: Service objects
+- `app/jobs/`: Background jobs
 
-1. Copy the example environment file:
-   ```
-   cp .env.example .env
-   ```
+## API Services
 
-2. Edit the `.env` file with your configuration values.
+The application uses the following API services:
 
-3. For production, ensure the following environment variables are set:
-   - `DATABASE_URL`
-   - `REDIS_URL`
-   - `RAILS_MASTER_KEY`
+1. **Authentication API**: Handles user login and registration
+2. **Credits API**: Manages credit packages and purchases
+3. **Calls API**: Handles call initiation and management
+4. **WebRTC API**: Provides WebRTC tokens and configuration
+5. **Stripe API**: Processes payments
 
-### Credentials
+## WebRTC Implementation
 
-Sensitive credentials are stored in Rails encrypted credentials:
+The WebRTC implementation includes:
 
-- Development/test: `rails credentials:edit --environment development`
-- Production: `rails credentials:edit --environment production`
+- STUN/TURN server configuration
+- Media stream handling
+- Connection state management
+- Error handling
 
-Required credentials:
-- Twilio (for SIP gateway)
-- Stripe (for payments)
+## Real-time Updates
+
+ActionCable is used for real-time updates:
+
+- Call state changes
+- ICE candidate exchange
+- Call ending notifications
 
 ## Getting Started
 
 ### Prerequisites
 
-- Ruby 3.x
-- Rails 8.x
-- PostgreSQL
-- Node.js and Yarn
-- Redis (for Sidekiq)
+- Ruby 3.0.0 or higher
+- Rails 7.0.0 or higher
+- Node.js 14.0.0 or higher
+- PostgreSQL 12.0 or higher
 
 ### Installation
 
 1. Clone the repository
-```bash
-git clone https://github.com/yourusername/papercup.git
-cd papercup
-```
+   ```
+   git clone https://github.com/yourusername/papercup.git
+   cd papercup
+   ```
 
 2. Install dependencies
-```bash
-bundle install
-yarn install
-```
+   ```
+   bundle install
+   yarn install
+   ```
 
-3. Setup the database
-```bash
-rails db:create db:migrate db:seed
-```
+3. Set up the database
+   ```
+   rails db:create db:migrate db:seed
+   ```
 
 4. Start the development server
-```bash
-bin/dev
-```
+   ```
+   bin/dev
+   ```
 
-## Development Guidelines
+5. Visit `http://localhost:3000` in your browser
 
-### Code Standards
-- 2-space indentation for all code files
-- Snake case for Ruby, camelCase for JavaScript
-- Maximum line length of 100 characters
-- Include typed parameters where possible
+## Environment Variables
 
-### Frontend Development
-- Use Work Sans font family for all UI components
-- Follow the defined color scheme (#000000, #FFFFFF, #FFD700, #4CAF50, #FF4444, #F5F5F5, #333333)
-- Use Stimulus controllers for all interactive components
-- Prefer data attributes for Stimulus targets over IDs
-- Use Tailwind CSS utility classes - avoid custom CSS when possible
+The following environment variables are required:
 
-### Backend Development
-- Follow frontend-first development approach
-- Create service objects for complex business logic
-- Use Active Record scopes for common queries
-- All database operations involving credits must be atomic
-- Use background jobs for all processing that takes >100ms
+- `STRIPE_PUBLISHABLE_KEY`: Stripe publishable key
+- `STRIPE_SECRET_KEY`: Stripe secret key
+- `TWILIO_ACCOUNT_SID`: Twilio account SID
+- `TWILIO_AUTH_TOKEN`: Twilio auth token
+- `TWILIO_API_KEY`: Twilio API key
+- `TWILIO_API_SECRET`: Twilio API secret
 
 ## Testing
 
-```bash
-# Run all tests
-bundle exec rspec
+Run the test suite with:
 
-# Run specific test directory
-bundle exec rspec spec/models
-
-# Run tests with browser visibility
-HEADED=TRUE bundle exec rspec
 ```
-
-## WebRTC Implementation
-
-- Always use secure connections (SRTP/DTLS)
-- Configure public STUN servers (Google STUN used by default)
-- Handle browser permissions explicitly
-- Implement graceful degradation for unsupported browsers
-- Monitor and log connection quality metrics
+bundle exec rspec
+```
 
 ## Deployment
 
-The application is configured for deployment on Hetzner Cloud using Hatchbox with zero-downtime deployment capabilities.
+The application is configured for deployment on Hetzner Cloud and Hatchbox.
 
-## Security
+## License
 
-- All WebRTC connections are secured with SRTP/DTLS
-- Phone numbers are validated with phonelib
-- WebRTC tokens have short expiration times
-- CSRF protection is implemented on all forms
-- All user inputs are sanitized
-
-## Contributing
-
-1. Create a feature branch (`git checkout -b feature/amazing-feature`)
-2. Commit your changes (`git commit -m 'Add some amazing feature'`)
-3. Push to the branch (`git push origin feature/amazing-feature`)
-4. Open a Pull Request
-
-Please ensure your code adheres to our style guidelines and passes all tests.
+This project is licensed under the MIT License - see the LICENSE file for details.

@@ -75,4 +75,28 @@ Rails.application.configure do
   # ]
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+
+  # Enable caching with Redis
+  config.cache_store = :redis_cache_store, {
+    url: ENV['REDIS_URL'],
+    namespace: 'papercup:cache',
+    expires_in: 1.day,
+    compress: true,
+    compression_threshold: 1.kilobyte,
+    race_condition_ttl: 10.seconds
+  }
+  
+  # Use Redis for session store
+  config.session_store :cache_store, key: "_papercup_session", expire_after: 30.days
+  
+  # Enable fragment caching in views
+  config.action_controller.perform_caching = true
+  config.action_controller.enable_fragment_cache_logging = false
+  
+  # Cache action responses
+  config.action_controller.cache_store = :redis_cache_store, {
+    url: ENV['REDIS_URL'],
+    namespace: 'papercup:action_controller',
+    expires_in: 4.hours
+  }
 end

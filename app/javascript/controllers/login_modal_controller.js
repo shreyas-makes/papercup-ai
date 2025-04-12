@@ -1,21 +1,21 @@
 import { Controller } from "@hotwired/stimulus"
+import api from "../services/api"
 
 /**
  * Login modal controller
  * Handles opening/closing the modal and authentication flow
  */
 export default class extends Controller {
-  static targets = ["email", "password", "error", "form"]
+  static targets = ["email", "password", "error"]
   
   connect() {
-    // Listen for global events to show/hide modal
+    console.log("Login modal controller connected")
+    // Listen for the show modal event
     document.addEventListener('papercup:show-modal', this.handleShowModal.bind(this))
-    document.addEventListener('papercup:hide-modal', this.close.bind(this))
   }
   
   disconnect() {
     document.removeEventListener('papercup:show-modal', this.handleShowModal.bind(this))
-    document.removeEventListener('papercup:hide-modal', this.close.bind(this))
   }
   
   /**
@@ -23,18 +23,15 @@ export default class extends Controller {
    */
   handleShowModal(event) {
     if (event.detail.id === 'login-modal') {
-      this.open()
+      this.show()
     }
   }
   
   /**
    * Open the login modal
    */
-  open() {
+  show() {
     this.element.classList.remove('hidden')
-    setTimeout(() => {
-      this.element.querySelectorAll('input')[0].focus()
-    }, 100)
   }
   
   /**
@@ -42,7 +39,6 @@ export default class extends Controller {
    */
   close() {
     this.element.classList.add('hidden')
-    this.clearError()
   }
   
   /**
@@ -54,79 +50,31 @@ export default class extends Controller {
     const email = this.emailTarget.value
     const password = this.passwordTarget.value
     
-    // Basic validation
     if (!email || !password) {
-      this.showError("Please enter both email and password")
+      this.showError("Please enter email and password")
       return
     }
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content
     
     try {
-      const response = await fetch('/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRF-Token': csrfToken
-        },
-        body: JSON.stringify({
-          user: {
-            email: email,
-            password: password
-          }
-        })
-      })
-
-      if (!response.ok) {
-        if (response.headers.get('content-type')?.includes('application/json')) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Invalid email or password');
-        } else {
-          throw new Error('Invalid email or password');
-        }
+      this.showLoading()
+      console.log("Attempting login with", email)
+      const response = await api.login(email, password)
+      
+      if (response.token) {
+        console.log("Login successful")
+        this.close()
+        // Dispatch an event to notify other controllers that user has logged in
+        document.dispatchEvent(new CustomEvent('papercup:login', {
+          detail: { success: true }
+        }))
+      } else {
+        this.showError("Login failed. Please try again.")
       }
-
-      // Check if response is JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        // If it's not JSON, it's probably a redirect - just reload the page
-        window.location.reload();
-        return;
-      }
-
-      const data = await response.json();
-      
-      // Dispatch login event to update global state
-      document.dispatchEvent(new CustomEvent('papercup:login', {
-        detail: {
-          user: data.user,
-          credits: data.credits
-        }
-      }))
-      
-      // Show success message
-      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-        detail: {
-          type: 'success',
-          title: 'Welcome back!',
-          message: "You've successfully logged in"
-        }
-      }))
-      
-      // Redirect to dashboard or reload page
-      window.location.href = '/'
-      
     } catch (error) {
-      this.showError(error.message || "Invalid email or password")
-      
-      // Show error notification
-      document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-        detail: {
-          type: 'error',
-          message: error.message || "Login failed. Please try again."
-        }
-      }))
+      console.error("Login error:", error)
+      this.showError(error.message || "Login failed. Please try again.")
+    } finally {
+      this.hideLoading()
     }
   }
   
@@ -141,8 +89,30 @@ export default class extends Controller {
   /**
    * Clear the error message
    */
-  clearError() {
-    this.errorTarget.textContent = ""
+  hideError() {
+    this.errorTarget.textContent = ''
     this.errorTarget.classList.add('hidden')
+  }
+  
+  showLoading() {
+    const button = this.element.querySelector('button[type="submit"]')
+    if (button) {
+      button.disabled = true
+      button.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Signing in...
+      `
+    }
+  }
+  
+  hideLoading() {
+    const button = this.element.querySelector('button[type="submit"]')
+    if (button) {
+      button.disabled = false
+      button.innerHTML = 'Sign In'
+    }
   }
 } 

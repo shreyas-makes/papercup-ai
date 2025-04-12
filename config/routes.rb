@@ -6,6 +6,7 @@ Rails.application.routes.draw do
     get "credits/show"
     resources :credits, only: [:index, :show] do
       collection do
+        get :balance
         post :create_checkout_session
         post :webhook
       end
@@ -15,6 +16,18 @@ Rails.application.routes.draw do
     # get "calls/update"
     # get "calls/show"
     # get "calls/index"
+
+    resources :calls, only: [:index, :show] do
+      resources :metrics, only: [:create], controller: 'call_metrics'
+    end
+    
+    resources :analytics, only: [:index] do
+      collection do
+        get :call_volume
+        get :call_quality
+        get :destinations
+      end
+    end
   end
   ActiveAdmin.routes(self)
 
@@ -55,6 +68,7 @@ Rails.application.routes.draw do
       end
       
       collection do
+        get :history
         post :status_callback
         post :webhook
         get :webhook # Allow GET for TwiML webhooks
@@ -63,6 +77,7 @@ Rails.application.routes.draw do
 
     namespace :v1 do
       post 'auth/login', to: 'auth#create'
+      post 'auth/login_from_session', to: 'auth#login_from_session'
       delete 'auth/logout', to: 'auth#destroy'
       get 'auth/me', to: 'auth#me'
     end
@@ -105,7 +120,6 @@ Rails.application.routes.draw do
     collection do
       get :success
       get :cancel
-      post :create_checkout_session
     end
   end
   resources :call_history, only: [:index]
@@ -116,4 +130,22 @@ Rails.application.routes.draw do
   # Static pages
   get 'privacy', to: 'pages#privacy'
   get 'terms', to: 'pages#terms'
+
+  # Admin routes
+  namespace :admin do
+    resources :analytics, only: [:index] do
+      collection do
+        get :call_volume
+        get :call_quality
+        get :revenue
+        get :destinations
+        get :users
+      end
+    end
+    
+    resources :calls, only: [:index, :show]
+  end
+
+  # User routes
+  get 'user/analytics', to: 'users#analytics', as: :user_analytics
 end

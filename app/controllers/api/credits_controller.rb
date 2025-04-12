@@ -16,6 +16,13 @@ module Api
       }
     end
 
+    # GET /api/credits/balance
+    def balance
+      render json: {
+        balance: current_user.credit_balance
+      }
+    end
+
     # POST /api/credits/create_checkout_session
     def create_checkout_session
       credit_package = CreditPackage.find(params[:package_id])

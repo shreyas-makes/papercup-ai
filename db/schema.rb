@@ -71,6 +71,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_12_204946) do
     t.index ["call_id"], name: "index_call_events_on_call_id"
   end
 
+  create_table "call_metrics", force: :cascade do |t|
+    t.bigint "call_id", null: false
+    t.float "jitter", default: 0.0, null: false
+    t.float "packet_loss", default: 0.0, null: false
+    t.float "latency", default: 0.0, null: false
+    t.integer "bitrate"
+    t.string "codec"
+    t.string "resolution"
+    t.json "raw_data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["call_id", "created_at"], name: "index_call_metrics_on_call_id_and_created_at"
+    t.index ["call_id"], name: "index_call_metrics_on_call_id"
+  end
+
   create_table "call_rates", force: :cascade do |t|
     t.string "country_code", null: false
     t.string "prefix", null: false
@@ -196,6 +211,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_12_204946) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "call_events", "calls"
+  add_foreign_key "call_metrics", "calls"
   add_foreign_key "calls", "users"
   add_foreign_key "credit_transactions", "users"
 end

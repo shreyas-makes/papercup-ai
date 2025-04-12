@@ -1,27 +1,33 @@
 FactoryBot.define do
   factory :credit_package do
     sequence(:name) { |n| "Package #{n}" }
-    sequence(:description) { |n| "Description for Package #{n}" }
-    amount_cents { 1000 }
-    price_cents { 1000 }
-    active { true }
-
-    trait :inactive do
-      active { false }
-    end
-
-    trait :large do
-      name { "Large Package" }
-      description { "Perfect for heavy users" }
+    sequence(:identifier) { |n| "package_#{n}" }
+    description { "A great credit package" }
+    amount_cents { 10000 }
+    price_cents { 2000 }
+    
+    trait :starter do
+      name { 'Starter' }
+      identifier { 'starter' }
       amount_cents { 5000 }
-      price_cents { 4500 }
+      price_cents { 1000 }
+      description { 'Perfect for occasional callers' }
     end
-
+    
+    trait :standard do
+      name { 'Standard' }
+      identifier { 'standard' }
+      amount_cents { 15000 }
+      price_cents { 2500 }
+      description { 'Most popular choice' }
+    end
+    
     trait :premium do
-      name { "Premium Package" }
-      description { "Our best value package" }
-      amount_cents { 10000 }
-      price_cents { 9000 }
+      name { 'Premium' }
+      identifier { 'premium' }
+      amount_cents { 35000 }
+      price_cents { 5000 }
+      description { 'For frequent callers' }
     end
   end
 end

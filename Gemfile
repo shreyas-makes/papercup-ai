@@ -25,6 +25,7 @@ gem 'rack-cors', :require => 'rack/cors'
 gem 'rails', '8.0.0.rc1'
 gem 'redis'
 gem 'rename', '1.1.3', git: 'https://github.com/ryanckulp/rename' # remove this gem after use
+gem 'sidekiq', '~> 7.2.0' # for background processing
 gem 'split', require: 'split/dashboard'
 gem 'sprockets-rails'
 gem 'stimulus-rails'
@@ -37,6 +38,12 @@ gem 'jwt'
 gem 'omniauth-rails_csrf_protection', '~> 1.0'
 gem "phonelib"
 gem "twilio-ruby"
+# Error tracking and monitoring
+gem 'sentry-ruby'
+gem 'sentry-rails'
+gem 'sentry-sidekiq'
+# Performance monitoring
+gem 'get_process_mem'
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
