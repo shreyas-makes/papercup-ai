@@ -18,6 +18,23 @@ class Call < ApplicationRecord
     failed: 'failed'
   }
 
+  # Alias methods to map between column names and expected method names
+  def started_at
+    start_time
+  end
+
+  def started_at=(time)
+    self.start_time = time
+  end
+
+  def ended_at
+    end_time
+  end
+
+  def ended_at=(time)
+    self.end_time = time
+  end
+
   # Duration in seconds
   def duration
     return 0 unless started_at
