@@ -61,23 +61,13 @@ end
 puts "#{CallRate.count} call rates in the system"
 
 # Create credit packages
-CreditPackage.create!([
-  {
-    name: 'Starter Pack',
-    amount_cents: 1000, # $10 worth of credits
-    price_cents: 1000  # $10 USD
-  },
-  {
-    name: 'Popular Pack',
-    amount_cents: 5000, # $50 worth of credits
-    price_cents: 4500  # $45 USD (10% discount)
-  },
-  {
-    name: 'Pro Pack',
-    amount_cents: 10000, # $100 worth of credits
-    price_cents: 8500   # $85 USD (15% discount)
-  }
-]) if CreditPackage.count.zero?
+CreditPackage::PACKAGE_IDENTIFIERS.each do |identifier, details|
+  CreditPackage.find_or_create_by!(identifier: identifier) do |package|
+    package.name = details[:name]
+    package.amount_cents = details[:amount] * 100  # Convert to cents
+    package.price_cents = details[:price] * 100    # Convert to cents
+  end
+end
 
 # Create some sample calls for the regular user
 if user.calls.count < 5

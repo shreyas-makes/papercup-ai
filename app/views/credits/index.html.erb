@@ -1,46 +1,99 @@
 <% meta title: "Credits", description: "Manage your Papercup calling credits" %>
 
-<div class="max-w-3xl mx-auto bg-secondary rounded-lg shadow-lg overflow-hidden">
-  <!-- Credits header -->
-  <div class="bg-primary text-secondary py-4 px-6">
-    <h1 class="text-2xl font-semibold">Manage Credits</h1>
-    <p class="text-sm opacity-80">Purchase and track your calling credits</p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-controller="credits">
+  <div class="text-center mb-24">
+    <h1 class="mt-8 text-5xl font-bold tracking-tight text-[#1a1a1a]">
+      Choose Your Credit Package
+    </h1>
+    <p class="mt-6 text-xl text-gray-600">
+      Get started with high-quality international calls
+    </p>
   </div>
 
-  <!-- Current balance -->
-  <div class="p-6 border-b border-background">
-    <div class="flex items-center justify-between">
-      <h2 class="text-lg font-medium">Current Balance</h2>
-      <span class="text-2xl font-bold text-accent">$10.00</span>
+  <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-24">
+    <% @credit_packages.each do |package| %>
+      <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-8 relative">
+        <% if package.name == "Standard" %>
+          <div class="absolute -top-3 right-6 bg-black text-white text-sm font-semibold px-4 py-1 rounded-full">
+            BEST VALUE
+          </div>
+        <% end %>
+        
+        <h2 class="text-2xl font-bold text-[#1a1a1a]"><%= package.name %></h2>
+        <p class="mt-2 text-gray-600"><%= package.description %></p>
+        
+        <div class="mt-8">
+          <span class="text-5xl font-bold text-[#1a1a1a]">$<%= package.price.format(symbol: false) %></span>
+        </div>
+        <p class="mt-2 text-gray-600">
+          Get $<%= package.amount.format(symbol: false) %> in calling credits
+        </p>
+
+        <ul class="mt-8 space-y-4">
+          <li class="flex items-center">
+            <svg class="flex-shrink-0 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <span class="ml-3 text-gray-600">
+              <%= package.amount_cents / 100 * 0.9 %> minutes of talk time
+            </span>
+          </li>
+          <li class="flex items-center">
+            <svg class="flex-shrink-0 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <span class="ml-3 text-gray-600">
+              Valid for <%= package.name == "Starter" ? "30" : package.name == "Standard" ? "60" : "90" %> days
+            </span>
+          </li>
+        </ul>
+
+        <button
+          data-package-id="<%= package.id %>"
+          data-action="click->credits#selectPackage"
+          class="mt-8 w-full bg-black hover:bg-gray-900 border border-transparent rounded-xl py-4 text-base font-semibold text-white text-center transition-colors duration-200"
+        >
+          Select Package
+        </button>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="mt-16 bg-gray-50 rounded-2xl p-12 max-w-4xl mx-auto mb-24">
+    <h2 class="text-3xl font-bold text-[#1a1a1a] mb-12 text-center">How It Works</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+      <div class="mt-16 text-center">
+        <div class="flex items-center justify-center h-14 w-14 rounded-full bg-black text-white text-xl font-semibold mx-auto mb-6">1</div>
+        <h3 class="text-xl font-semibold text-[#1a1a1a] mb-3">Choose a credit package</h3>
+        <p class="text-gray-600">Select the package that best fits your calling needs.</p>
+      </div>
+      <div class="mt-16 text-center">
+        <div class="flex items-center justify-center h-14 w-14 rounded-full bg-black text-white text-xl font-semibold mx-auto mb-6">2</div>
+        <h3 class="text-xl font-semibold text-[#1a1a1a] mb-3">Complete your payment</h3>
+        <p class="text-gray-600">Pay securely using your credit card or other payment methods.</p>
+      </div>
+      <div class="mt-16 text-center">
+        <div class="flex items-center justify-center h-14 w-14 rounded-full bg-black text-white text-xl font-semibold mx-auto mb-6">3</div>
+        <h3 class="text-xl font-semibold text-[#1a1a1a] mb-3">Start making calls</h3>
+        <p class="text-gray-600">Your credits will be instantly added to your account.</p>
+      </div>
     </div>
   </div>
 
-  <!-- Purchase options -->
-  <div class="p-6">
-    <h2 class="text-lg font-medium mb-4">Purchase Credits</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div class="border-2 border-background rounded-lg p-4 text-center hover:border-accent cursor-pointer">
-        <div class="text-xl font-bold">$5</div>
-        <div class="text-text-secondary">30 minutes</div>
-      </div>
-      <div class="border-2 border-accent rounded-lg p-4 text-center bg-accent bg-opacity-5 cursor-pointer">
-        <div class="text-xl font-bold">$10</div>
-        <div class="text-text-secondary">70 minutes</div>
-        <div class="text-xs mt-1 font-medium text-success">Best value</div>
-      </div>
-      <div class="border-2 border-background rounded-lg p-4 text-center hover:border-accent cursor-pointer">
-        <div class="text-xl font-bold">$20</div>
-        <div class="text-text-secondary">150 minutes</div>
-      </div>
+  <div class="mt-16 bg-white rounded-2xl p-8 max-w-4xl mx-auto shadow-sm border border-gray-200">
+    <h2 class="text-2xl font-bold text-[#1a1a1a] mb-6">Transaction History</h2>
+    <div class="bg-gray-50 rounded-xl p-6">
+      <p class="text-gray-600 text-center">Your transaction history will appear here.</p>
     </div>
-    <button class="w-full mt-6 py-3 bg-accent hover:bg-opacity-90 text-primary rounded-lg font-medium">
-      Add Credits
-    </button>
   </div>
 </div>
 
-<div class="max-w-3xl mx-auto mt-8 p-6 bg-secondary rounded-lg shadow-lg">
-  <h2 class="text-xl font-semibold mb-4">Transaction History</h2>
-  <p class="text-text-secondary">Your transaction history will appear here.</p>
-  <!-- This will be populated with actual transaction history later -->
-</div> 
+<%= content_for :head do %>
+  <script src="https://js.stripe.com/v3/"></script>
+<% end %>
+
+<%= content_for :javascript do %>
+  <script>
+    const stripe = Stripe('<%= Rails.application.credentials.stripe[:publishable_key] %>');
+  </script>
+<% end %> 

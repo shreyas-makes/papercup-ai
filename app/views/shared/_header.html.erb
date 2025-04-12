@@ -40,8 +40,10 @@
               <%= link_to "Profile", edit_user_registration_path, 
                   class: "block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100" %>
               
-              <%= link_to "Add Credits", subscribe_path, 
-                  class: "block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100" %>
+              <%= link_to credits_path, 
+                  class: "block px-5 py-3 text-sm text-gray-700 hover:bg-gray-100" do %>
+                Add Credits
+              <% end %>
               
               <!-- Logout Button -->
               <%= button_to "Sign out", destroy_user_session_path, 

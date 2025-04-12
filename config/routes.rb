@@ -101,7 +101,13 @@ Rails.application.routes.draw do
   resources :dialer, only: [:index]
   get 'dialer/test', to: 'dialer#test', as: 'dialer_test'
   get 'dialer/test_webrtc', to: 'dialer#test_webrtc', as: 'dialer_test_webrtc'
-  resources :credits, only: [:index]
+  resources :credits, only: [:index] do
+    collection do
+      get :success
+      get :cancel
+      post :create_checkout_session
+    end
+  end
   resources :call_history, only: [:index]
   
   # Notifications test page

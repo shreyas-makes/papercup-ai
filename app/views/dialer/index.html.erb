@@ -201,16 +201,22 @@
         <p class="text-text-secondary mb-4">Pay only for what you use. Credits never expire.</p>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="border border-white rounded-lg p-4 text-center bg-black/80 text-white">
-            <div class="text-xl font-bold text-yellow-500">$5</div>
-            <div class="text-sm mt-1">Starter Pack</div>
-          </div>
-          <div class="border border-white rounded-lg p-4 text-center bg-black/80 text-white">
             <div class="text-xl font-bold text-yellow-500">$10</div>
-            <div class="text-sm mt-1">Value Pack</div>
+            <div class="text-sm mt-1">Starter Pack</div>
+            <div class="text-xs mt-1 text-gray-300">50 credits</div>
+          </div>
+          <div class="border border-white rounded-lg p-4 text-center bg-black/80 text-white relative">
+            <div class="absolute -top-2 -right-2 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
+              BEST VALUE
+            </div>
+            <div class="text-xl font-bold text-yellow-500">$25</div>
+            <div class="text-sm mt-1">Standard Pack</div>
+            <div class="text-xs mt-1 text-gray-300">150 credits</div>
           </div>
           <div class="border border-white rounded-lg p-4 text-center bg-black/80 text-white">
-            <div class="text-xl font-bold text-yellow-500">$20</div>
-            <div class="text-sm mt-1">Pro Pack</div>
+            <div class="text-xl font-bold text-yellow-500">$50</div>
+            <div class="text-sm mt-1">Premium Pack</div>
+            <div class="text-xs mt-1 text-gray-300">350 credits</div>
           </div>
         </div>
         <%= link_to "View Detailed Rates", credits_path, class: "mt-4 inline-block text-primary hover:text-text-secondary underline" %>

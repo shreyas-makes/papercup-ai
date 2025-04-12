@@ -10,7 +10,7 @@ class ApplicationController < ActionController::Base
   end
 
   def after_sign_in_path_for(resource)
-    resource.paying_customer? ? dashboard_index_path : subscribe_path # point these wherever you want
+    credits_path # Always redirect to credits page for package selection
   end
 
   def maybe_skip_onboarding

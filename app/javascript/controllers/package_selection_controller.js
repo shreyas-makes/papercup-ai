@@ -71,14 +71,14 @@ export default class extends Controller {
       `
       
       // Get a new checkout session for the selected package
-      const response = await fetch("/billing_portal.json", {
+      const response = await fetch("/credits/create_checkout_session", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
         },
         body: JSON.stringify({
-          package_id: packageId
+          credit_package_id: packageId
         })
       })
       
@@ -86,16 +86,17 @@ export default class extends Controller {
         throw new Error('Failed to update checkout')
       }
       
-      const { clientSecret } = await response.json()
+      const { sessionId } = await response.json()
       
       // Create and mount new checkout
       const stripe = Stripe(document.querySelector('meta[name="stripe-key"]')?.content || '')
-      const checkout = await stripe.initEmbeddedCheckout({
-        clientSecret,
+      const result = await stripe.redirectToCheckout({
+        sessionId: sessionId
       })
       
-      // Mount Checkout
-      checkout.mount('#checkout')
+      if (result.error) {
+        throw new Error(result.error.message)
+      }
       
     } catch (error) {
       console.error('Error updating checkout:', error)

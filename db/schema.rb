@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_05_225723) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_12_204946) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -109,6 +109,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_05_225723) do
     t.integer "price_cents"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "active"
+    t.text "description"
+    t.string "identifier"
+    t.index ["identifier"], name: "index_credit_packages_on_identifier", unique: true
   end
 
   create_table "credit_transactions", force: :cascade do |t|

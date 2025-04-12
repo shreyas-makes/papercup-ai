@@ -10,6 +10,9 @@ end
 SimpleCov.formatter = SimpleCov::Formatter::TailwindFormatter
 
 require 'spec_helper'
+require 'capybara/rspec'
+require 'webmock/rspec'
+
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
 
@@ -40,7 +43,7 @@ Dir[Rails.root.join('spec/support/**/*.rb')].each { |f| require f }
 # directory. Alternatively, in the individual `*_spec.rb` files, manually
 # require only the support files necessary.
 #
-# Dir[Rails.root.join('spec', 'support', '**', '*.rb')].sort.each { |f| require f }
+Dir[Rails.root.join('spec', 'support', '**', '*.rb')].sort.each { |f| require f }
 
 # Checks for pending migrations and applies them before tests are run.
 # If you are not using ActiveRecord, you can remove these lines.
@@ -62,6 +65,7 @@ RSpec.configure do |config|
   # helper to leverage Devise in Request specs, just invoke sign_in(user)
   config.include Devise::Test::IntegrationHelpers, type: :request
   config.include Devise::Test::ControllerHelpers, type: :controller
+  config.include Warden::Test::Helpers
 
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_path = "#{::Rails.root}/spec/fixtures"
@@ -119,5 +123,17 @@ RSpec.configure do |config|
       { user_id: user.id, exp: 24.hours.from_now.to_i },
       Rails.application.credentials.secret_key_base
     )
+  end
+
+  # Configure Capybara
+  Capybara.server = :puma, { Silent: true }
+  Capybara.javascript_driver = :selenium_chrome_headless
+
+  # Configure WebMock to allow local connections
+  WebMock.disable_net_connect!(allow_localhost: true)
+
+  # Clean up Warden after each test
+  config.after :each do
+    Warden.test_reset!
   end
 end

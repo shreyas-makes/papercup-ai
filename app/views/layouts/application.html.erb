@@ -3,10 +3,9 @@
   <head>
     <%= metamagic site: 'Papercup', title: [:site, :title], separator: " | " %>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="stripe-key" content="<%= Rails.application.credentials.stripe[:publishable_key] %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-
-    <meta name="stripe-key" content="<%= ENV['STRIPE_PUBLISHABLE_KEY'] %>" />
 
     <!-- Work Sans font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,6 +21,9 @@
     <%= javascript_importmap_tags %>
 
     <%= render "shared/script_tags" if defined?(render_script_tags) %>
+    
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
   </head>
 
   <body class="bg-background" data-controller="application">
