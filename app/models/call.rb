@@ -10,7 +10,9 @@ class Call < ApplicationRecord
 
   # Call statuses
   enum :status, {
+    pending: 'pending',
     initiated: 'initiated',
+    ringing: 'ringing',
     connecting: 'connecting',
     in_progress: 'in_progress',
     completed: 'completed',

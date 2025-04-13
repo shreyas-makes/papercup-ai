@@ -26,6 +26,23 @@ class JwtService
     rescue JWT::DecodeError
       nil
     end
+    
+    # Alias for backward compatibility with AuthenticationTokenService
+    # Generate a token for user authentication
+    # @param user_id [Integer] the ID of the user
+    # @return [String] the generated JWT token
+    def call(user_id)
+      payload = { user_id: user_id }
+      encode(payload)
+    end
+    
+    # Check if the payload is valid
+    # @param payload [Hash] JWT payload to validate
+    # @return [Boolean] true if payload is valid, false otherwise
+    def valid_payload(payload)
+      return false if payload.nil? || payload['user_id'].blank?
+      true
+    end
 
     private
 

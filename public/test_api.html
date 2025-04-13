@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>API Test</title>
+  <script>
+  function testLogin() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    fetch('http://localhost:3000/api/v1/auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        auth: {
+          email: email,
+          password: password
+        }
+      })
+    })
+    .then(response => {
+      // Log HTTP status and other info
+      document.getElementById('result').innerHTML = 
+        `Status: ${response.status} ${response.statusText}<br>
+         URL: ${response.url}<br>`;
+      
+      // Only try to parse as JSON if successful
+      if (response.ok) {
+        return response.json();
+      } else {
+        // For error responses, just get the text
+        return response.text().then(text => {
+          throw new Error(`Server returned: ${response.status} ${response.statusText}\n${text.substring(0, 150)}...`);
+        });
+      }
+    })
+    .then(data => {
+      // Handle success case
+      document.getElementById('result').innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+        document.getElementById('token').innerText = data.token;
+      }
+    })
+    .catch(error => {
+      document.getElementById('result').innerText = 'Error: ' + error;
+    });
+
+    return false;
+  }
+
+  async function testDialer() {
+    const token = localStorage.getItem('authToken');
+    
+    if (!token) {
+      document.getElementById('dialerResult').innerText = 'Please login first';
+      return false;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/api/calls', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          call: {
+            phone_number: document.getElementById('phone').value,
+            country_code: document.getElementById('country').value
+          }
+        })
+      });
+      
+      const data = await response.json();
+      document.getElementById('dialerResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    } catch (error) {
+      document.getElementById('dialerResult').innerText = 'Error: ' + error;
+    }
+
+    return false;
+  }
+  </script>
+</head>
+<body>
+  <h1>API Testing</h1>
+  
+  <h2>1. Authentication Test</h2>
+  <form onsubmit="return testLogin()">
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" value="newtest@example.com">
+    </div>
+    <div>
+      <label for="password">Password:</label>
+      <input type="password" id="password" value="password123">
+    </div>
+    <button type="submit">Login</button>
+  </form>
+  
+  <div>
+    <h3>Token:</h3>
+    <code id="token"></code>
+  </div>
+  
+  <div>
+    <h3>Result:</h3>
+    <div id="result"></div>
+  </div>
+  
+  <hr>
+  
+  <h2>2. Call Initiation Test</h2>
+  <form onsubmit="return testDialer()">
+    <div>
+      <label for="phone">Phone Number:</label>
+      <input type="text" id="phone" value="+447741993282">
+    </div>
+    <div>
+      <label for="country">Country Code:</label>
+      <input type="text" id="country" value="GB">
+    </div>
+    <button type="submit">Make Call</button>
+  </form>
+  
+  <div>
+    <h3>Call Result:</h3>
+    <div id="dialerResult"></div>
+  </div>
+</body>
+</html> 

@@ -35,11 +35,16 @@ class StripeCheckoutService
 
     ActiveRecord::Base.transaction do
       @user.with_lock do
-        @user.increment!(:credit_balance, @credit_package.amount_cents)
+        # Get the package for the correct amount
+        credit_package = CreditPackage.find(session.metadata.credit_package_id)
+        
+        # Properly increment the balance using Money-Rails
+        @user.credit_balance_cents += credit_package.amount_cents
+        @user.save!
         
         CreditTransaction.create!(
           user: @user,
-          amount_cents: @credit_package.amount_cents,
+          amount_cents: credit_package.amount_cents,
           transaction_type: 'deposit',
           stripe_payment_id: session.payment_intent
         )

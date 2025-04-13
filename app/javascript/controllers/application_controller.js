@@ -83,7 +83,22 @@ export default class extends Controller {
             const data = await response.json();
             console.log("Auth state:", data);
             this.authenticatedValue = true;
-            this.creditsValue = data.user.credit_balance_cents / 100;
+            
+            // Make sure credit balance is valid
+            let balance = 0;
+            if (data.user && data.user.credit_balance_cents !== undefined) {
+              // Convert cents to dollars
+              balance = parseFloat(data.user.credit_balance_cents) / 100;
+              
+              // Validate that it's a proper number
+              if (isNaN(balance)) {
+                console.error("Invalid balance value:", data.user.credit_balance_cents);
+                balance = 0;
+              }
+            }
+            
+            console.log("Setting credit balance to:", balance);
+            this.creditsValue = balance;
           } else {
             // Token is invalid, clear it
             localStorage.removeItem('auth_token');
@@ -117,8 +132,20 @@ export default class extends Controller {
     // Fetch balance after login
     api.getBalance().then(data => {
       console.log("Fetched balance after login:", data.balance)
-      this.creditsValue = data.balance
-      this.broadcastState()
+      
+      // Validate balance value
+      let balance = 0;
+      if (data.balance !== undefined && data.balance !== null) {
+        balance = parseFloat(data.balance);
+        if (isNaN(balance)) {
+          console.error("Invalid balance value from API:", data.balance);
+          balance = 0;
+        }
+      }
+      
+      console.log("Setting validated balance value:", balance);
+      this.creditsValue = balance;
+      this.broadcastState();
     }).catch(error => {
       console.error("Error fetching balance after login:", error)
       // Handle error appropriately, maybe show a notification
@@ -184,15 +211,28 @@ export default class extends Controller {
    * Handle credits updated
    */
   handleCreditsUpdated(event) {
-    this.creditsValue = event.detail.credits
+    console.log("Credits update event received:", event.detail);
+    
+    // Validate credits value
+    let credits = 0;
+    if (event.detail && event.detail.credits !== undefined) {
+      credits = parseFloat(event.detail.credits);
+      if (isNaN(credits)) {
+        console.error("Invalid credits value from event:", event.detail.credits);
+        credits = 0;
+      }
+    }
+    
+    console.log("Setting validated credits value:", credits);
+    this.creditsValue = credits;
     
     // Show low balance warning if credits are below threshold
     if (this.creditsValue < 10) {
-      this.showLowBalanceWarning()
+      this.showLowBalanceWarning();
     }
     
     // Broadcast updated state
-    this.broadcastState()
+    this.broadcastState();
   }
   
   /**
@@ -302,14 +342,29 @@ export default class extends Controller {
    * Credits value changed
    */
   creditsValueChanged(value) {
-    console.log("Credits value changed:", value)
-    document.body.dataset.credits = value
+    console.log("Credits value changed:", value);
+    document.body.dataset.credits = value;
+    
+    // Make sure value is a valid number
+    let displayValue = 0;
+    if (value !== undefined && value !== null) {
+      // Convert to number and validate
+      displayValue = parseFloat(value);
+      if (isNaN(displayValue)) {
+        console.error("Invalid credits value:", value);
+        displayValue = 0;
+      }
+    }
+    
+    // Format the value to 2 decimal places
+    const formattedValue = displayValue.toFixed(2);
+    console.log("Formatted balance value:", formattedValue);
     
     // Update all elements with data-application-balance attribute
-    const balanceElements = document.querySelectorAll('[data-application-balance]')
+    const balanceElements = document.querySelectorAll('[data-application-balance]');
     balanceElements.forEach(element => {
-      element.textContent = value.toFixed(2)
-    })
+      element.textContent = formattedValue;
+    });
   }
   
   /**

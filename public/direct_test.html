@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Direct Twilio Test</title>
+  <style>
+    body {
+      font-family: 'Work Sans', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f5f5f5;
+      white-space: pre-wrap;
+    }
+    .token-display {
+      word-break: break-all;
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Direct Twilio Test</h1>
+  <p>This page tests the Twilio integration directly with the API, bypassing the Stimulus controllers.</p>
+  
+  <!-- Auth Section -->
+  <div id="auth-section">
+    <h2>Step 1: Login</h2>
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input type="email" id="email" value="newtest@example.com">
+    </div>
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <input type="password" id="password" value="password123">
+    </div>
+    <button id="login-btn">Login</button>
+    
+    <div id="token-result" class="result" style="display: none;">
+      <strong>Auth Token:</strong>
+      <div id="token-display" class="token-display"></div>
+    </div>
+  </div>
+  
+  <!-- Call Section -->
+  <div id="call-section" style="display: none; margin-top: 40px;">
+    <h2>Step 2: Make a Call</h2>
+    <div class="form-group">
+      <label for="phone">Phone Number:</label>
+      <input type="text" id="phone" value="+447741993282">
+    </div>
+    <div class="form-group">
+      <label for="country">Country Code:</label>
+      <input type="text" id="country" value="GB">
+    </div>
+    <button id="call-btn">Make Call</button>
+    
+    <div id="call-result" class="result" style="display: none;"></div>
+  </div>
+
+  <script>
+    // Token Storage
+    let authToken = localStorage.getItem('auth_token');
+    
+    // Check if token exists
+    if (authToken) {
+      document.getElementById('token-result').style.display = 'block';
+      document.getElementById('token-display').textContent = authToken;
+      document.getElementById('call-section').style.display = 'block';
+    }
+    
+    // Login Function
+    document.getElementById('login-btn').addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      try {
+        const response = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            auth: {
+              email: email,
+              password: password
+            }
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.token) {
+          localStorage.setItem('auth_token', data.token);
+          document.getElementById('token-result').style.display = 'block';
+          document.getElementById('token-display').textContent = data.token;
+          document.getElementById('call-section').style.display = 'block';
+          
+          authToken = data.token;
+        } else {
+          alert('Login failed: No token received');
+        }
+      } catch (error) {
+        alert('Login error: ' + error.message);
+        console.error('Login error:', error);
+      }
+    });
+    
+    // Call Function
+    document.getElementById('call-btn').addEventListener('click', async () => {
+      const phoneNumber = document.getElementById('phone').value;
+      const countryCode = document.getElementById('country').value;
+      
+      if (!authToken) {
+        alert('Please login first');
+        return;
+      }
+      
+      try {
+        // First, log exactly what we're sending
+        const requestBody = {
+          call: {
+            phone_number: phoneNumber,
+            country_code: countryCode
+          }
+        };
+        
+        console.log('Making API call with:', requestBody);
+        
+        const response = await fetch('/api/calls', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + authToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        });
+        
+        const data = await response.json();
+        
+        // Display the result
+        const resultElement = document.getElementById('call-result');
+        resultElement.textContent = JSON.stringify(data, null, 2);
+        resultElement.style.display = 'block';
+        
+        // If there's a call ID, set up a check after 5 seconds to see if the call went through
+        if (data.id) {
+          setTimeout(async () => {
+            try {
+              const checkResponse = await fetch(`/api/calls/${data.id}`, {
+                headers: {
+                  'Authorization': 'Bearer ' + authToken,
+                  'Accept': 'application/json'
+                }
+              });
+              
+              if (checkResponse.ok) {
+                const checkData = await checkResponse.json();
+                
+                // If twilio_sid was set, the call went through to Twilio
+                if (checkData.twilio_sid) {
+                  alert('Call successfully sent to Twilio! Check your phone.');
+                }
+              }
+            } catch (error) {
+              console.error('Error checking call status:', error);
+            }
+          }, 5000);
+        }
+      } catch (error) {
+        alert('Call error: ' + error.message);
+        console.error('Call error:', error);
+      }
+    });
+  </script>
+</body>
+</html> 

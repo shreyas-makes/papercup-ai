@@ -55,6 +55,16 @@ Rails.application.routes.draw do
 
   # API routes
   namespace :api, defaults: { format: :json } do
+    post 'stripe_webhooks', to: 'stripe_webhooks#create'
+    
+    resources :credits, only: [:index, :show] do
+      collection do
+        get :balance
+        post :create_checkout_session
+        post :webhook
+      end
+    end
+
     resources :sessions, only: [:create, :destroy] do
       collection do
         get :check
@@ -75,8 +85,21 @@ Rails.application.routes.draw do
       end
     end
 
+    resources :analytics, only: [:index] do
+      collection do
+        get :call_volume
+        get :call_quality
+        get :destinations
+      end
+    end
+
+    # Authentication endpoints
     namespace :v1 do
-      post 'auth/login', to: 'auth#create'
+      resources :auth, only: [:create] do
+        collection do
+          post :login, to: 'auth#create'
+        end
+      end
       post 'auth/login_from_session', to: 'auth#login_from_session'
       delete 'auth/logout', to: 'auth#destroy'
       get 'auth/me', to: 'auth#me'
@@ -85,6 +108,7 @@ Rails.application.routes.draw do
     # WebRTC token endpoint
     namespace :webrtc do
       post :token
+      get :test_connection
     end
   end
 
@@ -120,6 +144,7 @@ Rails.application.routes.draw do
     collection do
       get :success
       get :cancel
+      post :create_checkout_session
     end
   end
   resources :call_history, only: [:index]
@@ -148,4 +173,18 @@ Rails.application.routes.draw do
 
   # User routes
   get 'user/analytics', to: 'users#analytics', as: :user_analytics
+  
+  # Define additional routes for Twilio callbacks
+  # This ensures the webhook URLs used in InitiateCallJob are defined
+  # The issue was the missing webhook_url helper
+  namespace :api do
+    resources :calls, only: [] do
+      collection do
+        # These routes match the URLs used in the InitiateCallJob
+        get :webhook, defaults: { format: 'xml' }
+        post :webhook, defaults: { format: 'xml' }
+        post :status_callback, defaults: { format: 'json' }
+      end
+    end
+  end
 end

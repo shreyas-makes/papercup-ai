@@ -1,7 +1,6 @@
 module Api
   class CallsController < Api::BaseController
     before_action :authenticate_user!, except: [:status_callback, :webhook]
-    skip_forgery_protection only: [:status_callback, :webhook]
     before_action :find_call, only: [:show, :update, :terminate]
     
     # GET /api/calls
@@ -18,6 +17,7 @@ module Api
     # POST /api/calls
     def create
       @call = current_user.calls.new(call_params)
+      @call.status = 'initiated' # Set default status
       
       if @call.save
         service = CallService.new(@call)
@@ -101,7 +101,7 @@ module Api
     end
     
     def call_params
-      params.require(:call).permit(:phone_number, :country_code)
+      params.require(:call).permit(:phone_number, :country_code, :status)
     end
   end
 end

@@ -1,4 +1,8 @@
 class ApplicationController < ActionController::Base
+  include Response
+  include ExceptionHandler
+  rescue_from ActiveRecord::RecordNotDestroyed, with: :not_destroyed
+  
   impersonates :user
   protect_from_forgery with: :exception, unless: -> { request.format.json? }
 
@@ -23,6 +27,40 @@ class ApplicationController < ActionController::Base
   # def configure_permitted_parameters
   #   devise_parameter_sanitizer.permit(:sign_up, keys: [:username])
   # end
+
+  def authenticate_request!
+    return invalid_authentication if !payload || !JwtService.valid_payload(payload)
+    current_user!
+    invalid_authentication unless @current_user
+  end
+  
+  def current_user!
+    @current_user = User.find_by(id: payload['user_id'])
+  end
+  
+  private
+  
+  def payload
+    auth_header = request.headers['Authorization']
+    return nil unless auth_header
+    
+    if auth_header.include?('Bearer ')
+      token = auth_header.split(' ').last
+      JwtService.decode(token)
+    else
+      nil
+    end
+  rescue StandardError
+    nil
+  end
+  
+  def invalid_authentication
+    render json: { error: 'You will need to login first' }, status: :unauthorized
+  end
+
+  def not_destroyed(e)
+    render json: { errors: e.record.errors }, status: :unprocessable_entity
+  end
 
   protected
 

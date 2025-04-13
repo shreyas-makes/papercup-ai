@@ -1,13 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
-import { callApi, creditApi } from "../services/mockApi"
+import api from "../services/api"
 
 /**
- * Active call screen controller for handling call state and UI
+ * Active call controller for handling call state and UI
  */
 export default class extends Controller {
   static targets = ["timer", "status", "phoneNumber", "credits", "overlay"]
   static values = {
-    state: { type: String, default: "idle" }, // idle, connecting, active, ended
+    state: { type: String, default: "idle" }, // idle, connecting, ringing, active, ended
     duration: { type: Number, default: 0 },
     phoneNumber: String,
     countryCode: String,
@@ -17,48 +17,19 @@ export default class extends Controller {
   connect() {
     console.log("Active call controller connected", this.element)
     this.timerInterval = null
-    // Debug logs
-    console.log("Overlay target exists:", this.hasOverlayTarget)
-    if (this.hasOverlayTarget) {
-      console.log("Overlay element:", this.overlayTarget)
-    }
-    
-    // Listen for global state updates
-    document.addEventListener('papercup:state-update', this.handleStateUpdate.bind(this))
-    
-    // Listen for direct call status changes
-    document.addEventListener('papercup:call-status-changed', this.handleCallStatusChanged.bind(this))
+    this.statusPollingInterval = null
+    console.log("Available targets:", {
+      timer: this.hasTimerTarget,
+      status: this.hasStatusTarget,
+      phoneNumber: this.hasPhoneNumberTarget,
+      credits: this.hasCreditsTarget,
+      overlay: this.hasOverlayTarget
+    })
   }
 
   disconnect() {
     this.stopTimer()
-    document.removeEventListener('papercup:state-update', this.handleStateUpdate.bind(this))
-    document.removeEventListener('papercup:call-status-changed', this.handleCallStatusChanged.bind(this))
-  }
-  
-  /**
-   * Handle global state updates
-   */
-  handleStateUpdate(event) {
-    const { callStatus } = event.detail
-    
-    // Only react if the call status has changed
-    if (callStatus && callStatus !== this.stateValue) {
-      this.updateCallState(callStatus)
-    }
-  }
-  
-  /**
-   * Handle call status change events
-   */
-  handleCallStatusChanged(event) {
-    const { status, callId } = event.detail
-    
-    if (status === 'active' && callId) {
-      this.callIdValue = callId
-    }
-    
-    this.updateCallState(status)
+    this.stopStatusPolling()
   }
 
   /**
@@ -72,7 +43,7 @@ export default class extends Controller {
     this.countryCodeValue = countryCode
     
     if (this.hasPhoneNumberTarget) {
-      this.phoneNumberTarget.textContent = `${countryCode} ${phoneNumber}`
+      this.phoneNumberTarget.textContent = phoneNumber
     } else {
       console.error("phoneNumber target not found")
     }
@@ -93,8 +64,87 @@ export default class extends Controller {
     // Start with connecting state
     this.updateCallState("connecting")
     
-    // Now callApi.startCall will be called by the dialer controller
-    // so we don't need to make the API call here, just react to state changes
+    // Make the actual API call to initiate the call
+    try {
+      console.log("Calling API.initiateCall with:", phoneNumber, countryCode)
+      const result = await api.initiateCall(phoneNumber, countryCode)
+      console.log("Call initiated with result:", result)
+      
+      if (result && result.id) {
+        this.callIdValue = result.id
+        // Keep in connecting state but start polling for status
+        this.startStatusPolling(result.id)
+        // Show notification that call is being connected
+        alert("Call initiated! Connecting to your phone...")
+      }
+    } catch (error) {
+      console.error("Error initiating call:", error)
+      this.updateCallState("ended")
+      // Show error notification
+      alert("Error initiating call: " + (error.message || "Unknown error"))
+      
+      // Hide the call screen after a short delay
+      setTimeout(() => {
+        this.hideCallScreen()
+      }, 1500)
+    }
+  }
+  
+  /**
+   * Start polling for call status updates
+   * @param {string} callId - The ID of the call to monitor
+   */
+  startStatusPolling(callId) {
+    // Clear any existing polling interval
+    this.stopStatusPolling()
+    
+    // Start polling every 2 seconds
+    this.statusPollingInterval = setInterval(async () => {
+      try {
+        const callData = await api.getCallStatus(callId)
+        console.log("Call status update:", callData)
+        
+        if (callData && callData.status) {
+          // Map the API status to our UI status
+          const statusMap = {
+            'initiated': 'connecting',
+            'in_progress': 'ringing',
+            'ringing': 'ringing',
+            'answered': 'active',
+            'in_call': 'active',
+            'completed': 'ended',
+            'failed': 'ended',
+            'terminated': 'ended'
+          }
+          
+          const uiStatus = statusMap[callData.status] || callData.status
+          console.log("Mapping status:", callData.status, "to UI status:", uiStatus)
+          
+          // Update UI with new status
+          this.updateCallState(uiStatus)
+          
+          // If call has ended, stop polling and hide after delay
+          if (uiStatus === 'ended') {
+            this.stopStatusPolling()
+            setTimeout(() => {
+              this.hideCallScreen()
+            }, 1500)
+          }
+        }
+      } catch (error) {
+        console.error("Error polling call status:", error)
+      }
+    }, 2000)
+  }
+  
+  /**
+   * Stop polling for call status
+   */
+  stopStatusPolling() {
+    if (this.statusPollingInterval) {
+      clearInterval(this.statusPollingInterval)
+      this.statusPollingInterval = null
+    }
   }
   
   /**
@@ -103,32 +153,16 @@ export default class extends Controller {
   async endCall() {
     console.log("endCall called")
     this.stopTimer()
+    this.stopStatusPolling()
     this.updateCallState("ended")
     
     // Only call the API if we have a call ID
     if (this.callIdValue) {
       try {
-        const result = await callApi.endCall(this.callIdValue)
+        const result = await api.endCall(this.callIdValue)
         console.log("Call ended with result:", result)
-        
-        // Update credit balance in global state
-        document.dispatchEvent(new CustomEvent('papercup:credits-updated', {
-          detail: { credits: result.remainingCredits }
-        }))
-        
-        // Update call status in global state
-        document.dispatchEvent(new CustomEvent('papercup:call-status-changed', {
-          detail: { status: 'ended' }
-        }))
       } catch (error) {
         console.error("Error ending call:", error)
-        document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-          detail: { 
-            type: 'error',
-            title: 'Call Error',
-            message: error.message || "Error ending call" 
-          }
-        }))
       }
     }
     
@@ -165,11 +199,9 @@ export default class extends Controller {
    * @param {string} state - The new call state
    */
   updateCallState(state) {
-    console.group("[ACTIVE CALL] State Update")
-    console.log("Previous state:", this.stateValue)
-    console.log("New state:", state)
-    console.log("Call ID:", this.callIdValue)
-    console.log("Overlay visible:", this.overlayTarget?.classList.contains('hidden'))
+    console.log("[ACTIVE CALL] State Update:", state)
+    console.log("- Previous state:", this.stateValue)
+    console.log("- Call ID:", this.callIdValue)
     
     this.stateValue = state
     
@@ -177,6 +209,7 @@ export default class extends Controller {
       const statusText = {
         idle: "",
         connecting: "Connecting...",
+        ringing: "Ringing...",
         active: "Connected",
         ended: "Call ended"
       }
@@ -186,7 +219,7 @@ export default class extends Controller {
       // Update status appearance based on state
       this.statusTarget.classList.remove("text-green-500", "text-amber-500", "text-red-500")
       
-      if (state === "connecting") {
+      if (state === "connecting" || state === "ringing") {
         this.statusTarget.classList.add("text-amber-500")
       } else if (state === "active") {
         this.statusTarget.classList.add("text-green-500")
@@ -207,11 +240,14 @@ export default class extends Controller {
       } else {
         this.statusTarget.classList.remove("animate-pulse")
       }
+      
+      // Dispatch event for other controllers
+      document.dispatchEvent(new CustomEvent('papercup:call-status-changed', {
+        detail: { status: state, callId: this.callIdValue }
+      }))
     } else {
       console.error("status target not found")
     }
-
-    console.groupEnd()
   }
   
   /**
@@ -222,51 +258,9 @@ export default class extends Controller {
     this.durationValue = 0
     this.updateTimerDisplay()
     
-    this.timerInterval = setInterval(async () => {
+    this.timerInterval = setInterval(() => {
       this.durationValue += 1
       this.updateTimerDisplay()
-      
-      // Fetch updated credit balance every 10 seconds
-      if (this.durationValue % 10 === 0) {
-        try {
-          const response = await creditApi.getBalance()
-          
-          if (this.hasCreditsTarget) {
-            // Remove the $ since it's already in the HTML
-            this.creditsTarget.textContent = response.credits.toFixed(2)
-          }
-          
-          // Update global credit balance
-          document.dispatchEvent(new CustomEvent('papercup:credits-updated', {
-            detail: { credits: response.credits }
-          }))
-          
-          // Check for low balance
-          if (response.credits < 2) {
-            document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-              detail: { 
-                type: 'warning',
-                title: 'Low Balance',
-                message: "Your credit balance is getting low. The call will end when you run out of credits." 
-              }
-            }))
-          }
-          
-          // End call if credits are depleted
-          if (response.credits <= 0) {
-            document.dispatchEvent(new CustomEvent('papercup:show-notification', {
-              detail: { 
-                type: 'warning',
-                title: 'Call Ended',
-                message: "Call ended: You've run out of credits." 
-              }
-            }))
-            this.endCall()
-          }
-        } catch (error) {
-          console.error("Error updating credit balance:", error)
-        }
-      }
     }, 1000)
   }
   
@@ -282,7 +276,7 @@ export default class extends Controller {
   }
   
   /**
-   * Update the timer display with formatted duration
+   * Update the timer display
    */
   updateTimerDisplay() {
     if (this.hasTimerTarget) {
@@ -295,15 +289,12 @@ export default class extends Controller {
   }
   
   /**
-   * Test method to toggle the call screen (for development)
+   * For testing the call UI
    */
   toggleTestCall() {
-    console.log("toggleTestCall called. Current state:", this.stateValue)
     if (this.stateValue === "idle") {
-      // Start a test call with mock data
-      this.startCall("555-123-4567", "+1")
+      this.startCall("+447741993282", "GB")
     } else {
-      // End the current call
       this.endCall()
     }
   }

@@ -3,12 +3,15 @@ module Api
     class AuthController < Api::BaseController
       include JwtAuthenticatable
       skip_before_action :authenticate_user_from_token!, only: [:create, :login_from_session]
+      skip_before_action :authenticate_jwt!, only: [:create, :login_from_session]
       
       def create
-        user = User.find_by(email: params[:email])
-        if user&.valid_password?(params[:password])
+        # Support both email and username for authentication
+        user = User.find_by(email: params.dig(:auth, :email))
+               
+        if user&.valid_password?(params.dig(:auth, :password))
           render json: {
-            token: user.jwt_token,
+            token: JwtService.call(user.id),
             user: {
               id: user.id,
               email: user.email,
@@ -16,7 +19,7 @@ module Api
             }
           }
         else
-          render json: { error: 'Invalid email or password' }, status: :unauthorized
+          render json: { error: 'Invalid credentials' }, status: :unauthorized
         end
       end
 
@@ -24,7 +27,7 @@ module Api
       def login_from_session
         if user_signed_in?
           render json: {
-            token: current_user.jwt_token,
+            token: JwtService.call(current_user.id),
             user: {
               id: current_user.id,
               email: current_user.email,

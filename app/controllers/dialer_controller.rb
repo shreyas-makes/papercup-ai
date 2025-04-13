@@ -1,4 +1,6 @@
 class DialerController < ApplicationController
+  before_action :authenticate_user!, except: [:index]
+  
   def index
     @countries = countries_data
   end

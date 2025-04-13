@@ -1,7 +1,5 @@
 module Api
-  class BaseController < ApplicationController
-    protect_from_forgery with: :null_session
-    skip_before_action :verify_authenticity_token
+  class BaseController < ActionController::API
     respond_to :json
 
     before_action :authenticate_user_from_token!

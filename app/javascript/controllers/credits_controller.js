@@ -5,17 +5,39 @@ export default class extends Controller {
   static targets = ["checkoutContainer", "selectedPackageDetails", "package", "balance", "history"]
   
   connect() {
-    console.log("Credits controller connected")
-    console.log("API service:", api)
-    this.selectedPackageId = null
+    console.log('Credits controller connected');
     
-    // Initialize Stripe
-    this.stripe = Stripe(document.querySelector('meta[name="stripe-key"]')?.content || '')
-    console.log("Stripe key:", document.querySelector('meta[name="stripe-key"]')?.content)
+    // Check for targets and log their existence
+    const balanceElements = document.querySelectorAll('[data-credits-target="balance"]');
+    const historyElements = document.querySelectorAll('[data-credits-target="history"]');
+    const errorElements = document.querySelectorAll('[data-credits-target="error"]');
+    const loadingElements = document.querySelectorAll('[data-credits-target="loading"]');
+    
+    console.log('Found balance elements:', balanceElements.length);
+    console.log('Found history elements:', historyElements.length);
+    console.log('Found error elements:', errorElements.length);
+    console.log('Found loading elements:', loadingElements.length);
+    
+    // Initialize Stripe (if needed)
+    if (window.Stripe) {
+      try {
+        const stripePublicKey = document.querySelector('meta[name="stripe-public-key"]')?.content;
+        if (stripePublicKey) {
+          this.stripe = window.Stripe(stripePublicKey);
+          console.log('Stripe initialized with public key');
+        } else {
+          console.warn('Stripe public key not found in meta tags');
+        }
+      } catch (error) {
+        console.error('Error initializing Stripe:', error);
+      }
+    } else {
+      console.warn('Stripe.js not loaded');
+    }
     
     // Load initial data
-    this.loadBalance()
-    this.loadHistory()
+    this.loadBalance();
+    this.loadHistory();
 
     // Listen for login events
     document.addEventListener('papercup:login', this.handleLogin.bind(this))
@@ -93,14 +115,22 @@ export default class extends Controller {
 
   async loadBalance() {
     try {
-      this.showLoading(this.balanceTarget)
-      const data = await api.getBalance()
-      this.updateBalanceDisplay(data.balance)
+      this.showLoading();
+      const data = await api.getBalance();
+      console.log('Balance data:', data);
+      
+      if (data && data.balance !== undefined) {
+        this.updateBalanceDisplay(data.balance);
+      } else {
+        console.error('Invalid balance data received:', data);
+        this.updateBalanceDisplay(0);
+      }
     } catch (error) {
-      console.error("Error loading balance:", error)
-      this.showError("Failed to load balance. Please try again later.")
+      console.error('Error loading balance:', error);
+      this.showError('Unable to load balance');
+      this.updateBalanceDisplay(0);
     } finally {
-      this.hideLoading(this.balanceTarget)
+      this.hideLoading();
     }
   }
 
@@ -118,14 +148,55 @@ export default class extends Controller {
   }
 
   updateBalanceDisplay(balance) {
-    if (this.balanceTarget) {
-      // Format balance as currency
-      const formatter = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2
+    try {
+      // Ensure balance is a number
+      let balanceValue = 0;
+      
+      // Handle null/undefined/empty values gracefully
+      if (balance === null || balance === undefined || balance === '') {
+        console.warn('Received null/undefined/empty balance, defaulting to 0');
+      } else if (typeof balance === 'object') {
+        // Handle Money object format with proper null checking
+        if (balance.cents !== undefined && balance.cents !== null) {
+          balanceValue = parseInt(balance.cents, 10) || 0;
+        } else if (balance.amount !== undefined && balance.amount !== null) {
+          balanceValue = Math.round(parseFloat(balance.amount) * 100) || 0;
+        }
+      } else if (typeof balance === 'number') {
+        // Handle raw number format
+        balanceValue = isNaN(balance) ? 0 : balance;
+      } else if (typeof balance === 'string') {
+        // Handle string format
+        const cleanString = balance.replace(/[^0-9.-]+/g, '');
+        balanceValue = cleanString ? parseFloat(cleanString) * 100 : 0;
+      }
+      
+      // Ensure we don't have NaN after conversion
+      if (isNaN(balanceValue)) {
+        console.error('Invalid balance value resulted in NaN:', balance);
+        balanceValue = 0;
+      }
+      
+      // Format as currency (2 decimal places)
+      const formattedBalance = (balanceValue / 100).toFixed(2);
+      
+      // Update all balance elements
+      document.querySelectorAll('[data-credits-target="balance"], [data-active-call-target="credits"]').forEach(el => {
+        if (el) el.textContent = `$${formattedBalance}`;
       });
-      this.balanceTarget.textContent = formatter.format(balance);
+      
+      // Dispatch an event to update the application balance
+      document.dispatchEvent(new CustomEvent('papercup:credits-updated', {
+        detail: { credits: balanceValue / 100 }
+      }));
+      
+      console.log('Balance updated:', formattedBalance);
+    } catch (error) {
+      console.error('Error updating balance display:', error);
+      // Fallback to zero if there's an error
+      document.querySelectorAll('[data-credits-target="balance"], [data-active-call-target="credits"]').forEach(el => {
+        if (el) el.textContent = '$0.00';
+      });
     }
   }
 
@@ -155,42 +226,54 @@ export default class extends Controller {
   }
 
   showLoading(element) {
-    element.classList.add('opacity-50')
-    element.disabled = true
-    
-    // Add loading spinner if not already present
-    if (!element.querySelector('.loading-spinner')) {
-      const spinner = document.createElement('div')
-      spinner.className = 'loading-spinner'
-      spinner.innerHTML = `
-        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      `
-      element.appendChild(spinner)
+    try {
+      const loadingElements = element ? [element] : 
+        document.querySelectorAll('[data-credits-target="loading"]');
+      
+      loadingElements.forEach(el => {
+        if (el) el.classList.remove('hidden');
+      });
+    } catch (error) {
+      console.error('Error showing loading state:', error);
     }
   }
 
   hideLoading(element) {
-    element.classList.remove('opacity-50')
-    element.disabled = false
-    
-    // Remove loading spinner
-    const spinner = element.querySelector('.loading-spinner')
-    if (spinner) {
-      spinner.remove()
+    try {
+      const loadingElements = element ? [element] : 
+        document.querySelectorAll('[data-credits-target="loading"]');
+      
+      loadingElements.forEach(el => {
+        if (el) el.classList.add('hidden');
+      });
+    } catch (error) {
+      console.error('Error hiding loading state:', error);
     }
   }
 
   showError(message) {
-    // Dispatch error event for toast notification
-    document.dispatchEvent(new CustomEvent('papercup:show-toast', {
-      detail: { 
-        type: 'error',
-        message: message
+    try {
+      const errorElements = document.querySelectorAll('[data-credits-target="error"]');
+      
+      errorElements.forEach(el => {
+        if (el) {
+          el.textContent = message;
+          el.classList.remove('hidden');
+          
+          // Auto-hide after 5 seconds
+          setTimeout(() => {
+            el.classList.add('hidden');
+          }, 5000);
+        }
+      });
+      
+      // If no error elements found, log to console
+      if (!errorElements.length) {
+        console.error('Error message (no error element found):', message);
       }
-    }));
+    } catch (error) {
+      console.error('Error displaying error message:', error);
+    }
   }
 
   async initializeStripe() {

@@ -86,4 +86,10 @@ Rails.application.configure do
 
   # Set the queue adapter to inline for testing purposes
   config.active_job.queue_adapter = :inline
+
+  # Add this configuration to set the host for URL generation
+  Rails.application.routes.default_url_options = {
+    host: 'localhost',
+    port: 3000
+  }
 end

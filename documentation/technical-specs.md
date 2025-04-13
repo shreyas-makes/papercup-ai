@@ -276,6 +276,188 @@ class CallService
 end
 ```
 
+## 7.1 Twilio PSTN Integration
+
+The application integrates with Twilio to enable outbound calling to regular phone numbers (PSTN).
+
+### Environment Configuration
+```ruby
+# Required environment variables (.env)
+TWILIO_ACCOUNT_SID=ACe749f7442ee156cfcd5c50367b4ba35c  # Your Twilio Account SID
+TWILIO_AUTH_TOKEN=9fcb29f74c07a76ca8e06f8583c770ee    # Your Twilio Auth Token
+TWILIO_PHONE_NUMBER=+19032705011                      # Your Twilio phone number
+APP_HOST=your-domain.com                              # Your public domain (for webhooks)
+```
+
+### Twilio Configuration
+```ruby
+# config/initializers/twilio.rb
+require 'twilio-ruby'
+
+# Single configuration using environment variables
+Twilio.configure do |config|
+  config.account_sid = ENV['TWILIO_ACCOUNT_SID']
+  config.auth_token = ENV['TWILIO_AUTH_TOKEN']
+end
+
+# Log Twilio configuration in development
+if Rails.env.development?
+  Rails.logger.info "Twilio initialized with Account SID: #{ENV['TWILIO_ACCOUNT_SID'].to_s.gsub(/.(?=.{4})/, '*')}"
+  Rails.logger.info "Twilio Auth Token provided: #{ENV['TWILIO_AUTH_TOKEN'].present?}"
+  Rails.logger.info "Twilio Phone Number configured as: #{ENV['TWILIO_PHONE_NUMBER']}"
+end
+```
+
+### Call Initiation Job
+```ruby
+# app/jobs/initiate_call_job.rb
+class InitiateCallJob < ApplicationJob
+  queue_as :calls
+  
+  include Rails.application.routes.url_helpers
+  
+  def perform(call_id)
+    call = Call.find_by(id: call_id)
+    return unless call
+    
+    begin
+      # Initialize Twilio client with explicit credentials to ensure proper authentication
+      twilio_client = Twilio::REST::Client.new(ENV['TWILIO_ACCOUNT_SID'], ENV['TWILIO_AUTH_TOKEN'])
+      
+      # Make the call through Twilio
+      twilio_call = twilio_client.calls.create(
+        url: webhook_url(call),
+        to: call.phone_number,
+        from: ENV['TWILIO_PHONE_NUMBER'],
+        status_callback: status_callback_url(call),
+        status_callback_event: ['initiated', 'ringing', 'answered', 'completed'],
+        status_callback_method: 'POST'
+      )
+      
+      # Store the Twilio SID for future reference
+      call.update(twilio_sid: twilio_call.sid, status: 'in_progress')
+      
+      # Create an event for the status update - must match the call status
+      CallEvent.create!(
+        call: call,
+        event_type: 'in_progress',
+        occurred_at: Time.current
+      )
+    rescue Twilio::REST::RestError => e
+      # Handle Twilio errors
+      call.update(status: 'failed', failure_reason: "twilio:#{e.code}")
+      
+      CallEvent.create!(
+        call: call,
+        event_type: 'failed',
+        occurred_at: Time.current,
+        metadata: { 
+          error_code: e.code, 
+          error_message: e.message 
+        }
+      )
+    rescue => e
+      # Handle other errors
+      call.update(status: 'failed', failure_reason: 'system_error')
+      
+      CallEvent.create!(
+        call: call,
+        event_type: 'failed',
+        occurred_at: Time.current,
+        metadata: { error: e.message }
+      )
+    end
+  end
+  
+  private
+  
+  # Generate webhook URL for TwiML
+  def webhook_url(call)
+    # Use the defined route helper with the correct format
+    webhook_api_calls_url(format: 'xml', call_id: call.id, host: ENV['APP_HOST'])
+  end
+  
+  # Generate status callback URL
+  def status_callback_url(call)
+    # Use the defined route helper with the correct format
+    status_callback_api_calls_url(format: 'json', call_id: call.id, host: ENV['APP_HOST'])
+  end
+end
+```
+
+### API Routes for Twilio Webhooks
+```ruby
+# config/routes.rb
+namespace :api do
+  resources :calls do
+    collection do
+      # TwiML webhook for call instructions
+      post :webhook
+      get :webhook # Allow GET for TwiML webhooks (XML format)
+      
+      # Status callback endpoint (JSON format)
+      post :status_callback
+    end
+  end
+end
+```
+
+### TwiML Response Generation
+```ruby
+# app/controllers/api/calls_controller.rb (webhook method)
+def webhook
+  call_id = params[:call_id]
+  call = Call.find_by(id: call_id)
+  
+  response = Twilio::TwiML::VoiceResponse.new do |r|
+    if call
+      r.say(message: "Thank you for accepting this call from Papercup.")
+      r.pause(length: 1)
+      r.say(message: "This call will be charged at our standard rates.")
+      r.pause(length: 1)
+      
+      # Optional: Play hold music
+      # r.play(url: 'https://demo.twilio.com/docs/classic.mp3')
+    else
+      r.say(message: "Sorry, there was an error with this call.")
+      r.hangup
+    end
+  end
+  
+  render xml: response.to_s
+end
+```
+
+### Status Callback Handling
+```ruby
+# app/controllers/api/calls_controller.rb (status_callback method)
+def status_callback
+  call_id = params[:call_id]
+  status = params[:CallStatus]
+  duration = params[:CallDuration]
+  
+  # Enqueue a job to update the call status
+  UpdateCallStatusJob.perform_later(call_id, status, duration)
+  
+  head :ok
+end
+```
+
+### Important Implementation Notes
+
+1. **Webhook Accessibility**: Twilio needs to access your webhooks via public URLs. In development, use ngrok (`ngrok http 3000`) and set `APP_HOST` to your ngrok URL.
+
+2. **Twilio Trial Limitations**: Trial accounts can only call verified numbers. Verify recipient numbers in the Twilio console.
+
+3. **Consistent Status Values**: Ensure that Call model and CallEvent model use consistent status values to prevent validation errors.
+
+4. **Authentication**: Always initialize the Twilio client with explicit credentials to avoid authentication issues:
+   ```ruby
+   twilio_client = Twilio::REST::Client.new(ENV['TWILIO_ACCOUNT_SID'], ENV['TWILIO_AUTH_TOKEN'])
+   ```
+
+5. **Background Job Processing**: Ensure Redis and Sidekiq are running to process the call jobs.
+
 ## 8. Background Jobs
 ```ruby
 # app/jobs/initiate_call_job.rb

@@ -58,17 +58,30 @@ const api = {
   
   // Calls
   async initiateCall(phoneNumber, countryCode) {
+    console.log(`Initiating call to ${phoneNumber} (${countryCode})`);
     const response = await fetch('/api/calls', {
       method: 'POST',
       headers: getHeaders(),
-      body: JSON.stringify({ phone_number: phoneNumber, country_code: countryCode })
+      body: JSON.stringify({ 
+        call: {
+          phone_number: phoneNumber, 
+          country_code: countryCode
+        }
+      })
+    });
+    return handleResponse(response);
+  },
+  
+  async getCallStatus(callId) {
+    const response = await fetch(`/api/calls/${callId}`, {
+      headers: getHeaders()
     });
     return handleResponse(response);
   },
   
   async endCall(callId) {
-    const response = await fetch(`/api/calls/${callId}`, {
-      method: 'DELETE',
+    const response = await fetch(`/api/calls/${callId}/terminate`, {
+      method: 'POST',
       headers: getHeaders()
     });
     return handleResponse(response);

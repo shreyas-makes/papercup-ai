@@ -13,7 +13,7 @@
         <% if user_signed_in? %>
           <!-- Credit Balance -->
           <div class="text-accent font-medium px-2" data-application-target="balanceDisplay">
-            Balance: $<span data-application-balance><%= current_user.credit_balance %></span>
+            Balance: $<span data-application-balance><%= number_with_precision(current_user.credit_balance, precision: 2) %></span>
           </div>
 
           <!-- Profile Dropdown - CSS Only Solution -->

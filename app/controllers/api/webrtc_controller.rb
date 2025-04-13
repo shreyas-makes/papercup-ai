@@ -21,4 +21,32 @@ class Api::WebrtcController < ApplicationController
     Rails.logger.error "Error generating WebRTC token for user #{current_user&.id}: #{e.message}"
     render json: { error: 'Failed to generate token' }, status: :internal_server_error
   end
+
+  # GET /api/webrtc/test_connection
+  def test_connection
+    begin
+      # Test WebRTC configuration
+      config = WebrtcService.generate_configuration
+      
+      # Test STUN server connectivity
+      stun_servers = config[:ice_servers]
+      
+      # Generate a test token
+      token = WebRtcTokenService.generate_token(current_user)
+      
+      render json: {
+        status: 'success',
+        config: config,
+        stun_servers: stun_servers,
+        token: token,
+        user_id: current_user.id
+      }, status: :ok
+    rescue => e
+      Rails.logger.error "WebRTC test connection error: #{e.message}"
+      render json: { 
+        status: 'error',
+        error: e.message
+      }, status: :internal_server_error
+    end
+  end
 end
