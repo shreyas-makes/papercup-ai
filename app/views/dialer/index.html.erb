@@ -7,6 +7,7 @@
     <div class="max-w-md mx-auto bg-secondary rounded-lg shadow-lg overflow-hidden" 
          data-controller="dialer"
          data-dialer-active-call-outlet="#active-call-controller"
+         data-dialer-phone-input-outlet="#phone-input-controller"
          id="dialer-main-container">
       <!-- Dialer header -->
       <div class="bg-primary text-secondary py-4 px-6">
@@ -18,8 +19,7 @@
       <div class="p-6 border-b border-background">
         <div class="w-full max-w-[480px] mx-auto relative p-1" 
              id="dialer-input-container"
-             data-controller="country-selector phone-input"
-             data-dialer-phone-input-outlet=".phone-input">
+             data-controller="country-selector">
           
           <!-- Phone input with country selector -->
           <div class="relative flex h-16 border border-[#EEEEEE] rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 focus-within:ring-4 focus-within:ring-accent focus-within:border-transparent">
@@ -35,7 +35,7 @@
             </button>
             
             <!-- Phone input field -->
-            <div class="relative flex-1 flex items-center overflow-hidden rounded-r-lg">
+            <div class="relative flex-1 flex items-center overflow-hidden rounded-r-lg" data-controller="phone-input" id="phone-input-controller">
               <input type="tel" 
                      class="w-full h-full px-4 text-xl focus:outline-none appearance-none bg-white rounded-r-lg" 
                      placeholder="7741993282" 
@@ -101,87 +101,6 @@
           <span>Call</span>
         </button>
       </div>
-      
-      <!-- Debug Call Button (for development) -->
-      <div class="p-4 bg-background">
-        <button class="w-full py-2 bg-amber-400 hover:bg-amber-500 text-white rounded-lg flex items-center justify-center space-x-2 text-sm font-medium shadow-md hover:shadow-lg active:scale-95 transition-all"
-                id="direct-api-call-btn">
-          <span>Make Direct API Call</span>
-        </button>
-        <div id="direct-call-result" class="mt-2 text-xs text-gray-500 hidden"></div>
-      </div>
-      
-      <script>
-        // Add direct API call functionality (similar to our test page)
-        document.addEventListener('DOMContentLoaded', function() {
-          const directCallBtn = document.getElementById('direct-api-call-btn');
-          const resultDiv = document.getElementById('direct-call-result');
-          
-          if (directCallBtn) {
-            directCallBtn.addEventListener('click', async function() {
-              // Get input values from the main dialer
-              const phoneInput = document.querySelector('[data-dialer-target="input"]');
-              const countryCodeElement = document.querySelector('[data-country-selector-target="selectedCode"]');
-              
-              if (!phoneInput || !countryCodeElement) {
-                alert('Could not find phone input or country code');
-                return;
-              }
-              
-              const phoneNumber = phoneInput.value.trim();
-              const countryCode = countryCodeElement.textContent.trim();
-              
-              if (!phoneNumber) {
-                alert('Please enter a phone number');
-                return;
-              }
-              
-              // Get auth token
-              const authToken = localStorage.getItem('auth_token');
-              if (!authToken) {
-                alert('Please log in first');
-                return;
-              }
-              
-              try {
-                // Make the API call directly
-                console.log('Making direct API call with:', {
-                  phoneNumber,
-                  countryCode
-                });
-                
-                const response = await fetch('/api/calls', {
-                  method: 'POST',
-                  headers: {
-                    'Authorization': 'Bearer ' + authToken,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    call: {
-                      phone_number: phoneNumber,
-                      country_code: countryCode
-                    }
-                  })
-                });
-                
-                const data = await response.json();
-                
-                // Show result
-                resultDiv.textContent = JSON.stringify(data, null, 2);
-                resultDiv.classList.remove('hidden');
-                
-                if (data.id) {
-                  alert('Call initiated successfully! Check your phone.');
-                }
-              } catch (error) {
-                console.error('Error making direct API call:', error);
-                alert('Error: ' + error.message);
-              }
-            });
-          }
-        });
-      </script>
     </div>
 
     <!-- Call History (below dialer in left column) -->

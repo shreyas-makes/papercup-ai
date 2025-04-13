@@ -163,12 +163,12 @@ export default class extends Controller {
           balanceValue = Math.round(parseFloat(balance.amount) * 100) || 0;
         }
       } else if (typeof balance === 'number') {
-        // Handle raw number format
-        balanceValue = isNaN(balance) ? 0 : balance;
+        // Handle raw number format (dollars)
+        balanceValue = isNaN(balance) ? 0 : Math.round(balance * 100);
       } else if (typeof balance === 'string') {
         // Handle string format
         const cleanString = balance.replace(/[^0-9.-]+/g, '');
-        balanceValue = cleanString ? parseFloat(cleanString) * 100 : 0;
+        balanceValue = cleanString ? Math.round(parseFloat(cleanString) * 100) : 0;
       }
       
       // Ensure we don't have NaN after conversion

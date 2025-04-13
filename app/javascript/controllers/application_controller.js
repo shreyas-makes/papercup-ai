@@ -86,13 +86,29 @@ export default class extends Controller {
             
             // Make sure credit balance is valid
             let balance = 0;
-            if (data.user && data.user.credit_balance_cents !== undefined) {
-              // Convert cents to dollars
-              balance = parseFloat(data.user.credit_balance_cents) / 100;
+            
+            // Try to get credit_balance_cents first, then fall back to credit_balance
+            if (data.user) {
+              if (data.user.credit_balance_cents !== undefined) {
+                // Convert cents to dollars
+                balance = parseFloat(data.user.credit_balance_cents) / 100;
+              } else if (data.user.credit_balance !== undefined) {
+                if (typeof data.user.credit_balance === 'object' && data.user.credit_balance !== null) {
+                  // It's a Money object
+                  if (data.user.credit_balance.cents !== undefined) {
+                    balance = parseFloat(data.user.credit_balance.cents) / 100;
+                  } else if (data.user.credit_balance.amount !== undefined) {
+                    balance = parseFloat(data.user.credit_balance.amount);
+                  }
+                } else {
+                  // Try to parse as number
+                  balance = parseFloat(data.user.credit_balance);
+                }
+              }
               
               // Validate that it's a proper number
               if (isNaN(balance)) {
-                console.error("Invalid balance value:", data.user.credit_balance_cents);
+                console.error("Invalid balance value:", data.user.credit_balance_cents || data.user.credit_balance);
                 balance = 0;
               }
             }
@@ -343,18 +359,38 @@ export default class extends Controller {
    */
   creditsValueChanged(value) {
     console.log("Credits value changed:", value);
-    document.body.dataset.credits = value;
     
     // Make sure value is a valid number
     let displayValue = 0;
-    if (value !== undefined && value !== null) {
-      // Convert to number and validate
-      displayValue = parseFloat(value);
+    
+    try {
+      // Handle different formats of the value
+      if (value === undefined || value === null || value === '') {
+        console.warn('Credits value is empty or undefined, defaulting to 0');
+      } else if (typeof value === 'object' && value !== null) {
+        // Handle object format (possibly a Money object)
+        if (value.cents !== undefined) {
+          displayValue = parseFloat(value.cents) / 100;
+        } else if (value.amount !== undefined) {
+          displayValue = parseFloat(value.amount);
+        }
+      } else {
+        // Try to parse as number
+        displayValue = parseFloat(value);
+      }
+      
+      // Ensure we have a valid number
       if (isNaN(displayValue)) {
-        console.error("Invalid credits value:", value);
+        console.error("Invalid credits value resulted in NaN:", value);
         displayValue = 0;
       }
+    } catch (error) {
+      console.error("Error processing credits value:", error);
+      displayValue = 0;
     }
+    
+    // Set the data attribute with the validated value
+    document.body.dataset.credits = displayValue;
     
     // Format the value to 2 decimal places
     const formattedValue = displayValue.toFixed(2);
@@ -363,7 +399,9 @@ export default class extends Controller {
     // Update all elements with data-application-balance attribute
     const balanceElements = document.querySelectorAll('[data-application-balance]');
     balanceElements.forEach(element => {
-      element.textContent = formattedValue;
+      if (element) {
+        element.textContent = formattedValue;
+      }
     });
   }
   

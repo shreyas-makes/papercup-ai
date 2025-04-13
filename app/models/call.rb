@@ -17,7 +17,8 @@ class Call < ApplicationRecord
     in_progress: 'in_progress',
     completed: 'completed',
     dropped: 'dropped',
-    failed: 'failed'
+    failed: 'failed',
+    terminated: 'terminated'
   }
 
   # Alias methods to map between column names and expected method names

@@ -44,7 +44,8 @@ module Api
           user: {
             id: current_user.id,
             email: current_user.email,
-            credit_balance: current_user.credit_balance
+            credit_balance: current_user.credit_balance,
+            credit_balance_cents: current_user.credit_balance_cents
           }
         }
       end
