@@ -23,10 +23,7 @@ class CallBillingJob < ApplicationJob
       CreditTransaction.create!(
         user: user,
         amount: -cost, # Negative amount for deduction
-        transaction_type: 'call_charge',
-        description: "Call to #{call.phone_number} (#{call.duration}s)",
-        reference_id: call.id,
-        reference_type: 'Call'
+        transaction_type: 'call_charge'
       )
       
       # Update user's credit balance

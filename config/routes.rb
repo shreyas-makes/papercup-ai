@@ -82,6 +82,8 @@ Rails.application.routes.draw do
         post :status_callback
         post :webhook
         get :webhook # Allow GET for TwiML webhooks
+        # Add route for direct Twilio status check
+        get :twilio_status, defaults: { format: 'json' }
       end
     end
 
@@ -184,6 +186,8 @@ Rails.application.routes.draw do
         get :webhook, defaults: { format: 'xml' }
         post :webhook, defaults: { format: 'xml' }
         post :status_callback, defaults: { format: 'json' }
+        # Add route for direct Twilio status check
+        get :twilio_status, defaults: { format: 'json' }
       end
     end
   end

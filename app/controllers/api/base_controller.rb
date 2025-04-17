@@ -1,36 +1,48 @@
 module Api
-  class BaseController < ActionController::API
+  class BaseController < ApplicationController
+    protect_from_forgery with: :null_session
+    skip_before_action :verify_authenticity_token
+    
+    rescue_from ActiveRecord::RecordNotFound, with: :not_found
+    rescue_from ActionController::ParameterMissing, with: :bad_request
+    rescue_from StandardError, with: :server_error
+
     respond_to :json
 
-    before_action :authenticate_user_from_token!
-    
     private
     
-    # Authenticate user from JWT token in header or params
-    def authenticate_user_from_token!
-      token = extract_token_from_request
-      payload = JwtService.decode(token) if token
+    protected
+
+    def authenticate_user!
+      Rails.logger.info "====== API AUTHENTICATION CHECK (Session) ======"
+      Rails.logger.info "Current user before auth: #{current_user.inspect}"
       
-      if payload && payload["user_id"]
-        user = User.find_by(id: payload["user_id"])
-        if user
-          sign_in user, store: false
-        else
-          render json: { error: 'User not found' }, status: :unauthorized and return
-        end
-      else
-        render json: { error: 'Unauthorized' }, status: :unauthorized and return unless user_signed_in?
+      unless user_signed_in?
+        Rails.logger.info "No user signed in via session, returning 401"
+        respond_with_error('You need to sign in or sign up before continuing.', :unauthorized)
       end
     end
-    
-    # Extract token from Authorization header or params
-    def extract_token_from_request
-      auth_header = request.headers['Authorization']
-      if auth_header&.start_with?('Bearer ')
-        return auth_header.split(' ').last
-      end
-      
-      params[:token]
+
+    def current_user
+      super
+    end
+
+    def respond_with_error(message, status)
+      render json: { error: message }, status: status
+    end
+
+    def not_found
+      respond_with_error('Resource not found', :not_found)
+    end
+
+    def bad_request(exception)
+      respond_with_error(exception.message, :bad_request)
+    end
+
+    def server_error(exception)
+      Rails.logger.error "API Error: #{exception.message}"
+      Rails.logger.error exception.backtrace.join("\n")
+      respond_with_error('Something went wrong', :internal_server_error)
     end
   end
 end

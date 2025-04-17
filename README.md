@@ -123,3 +123,22 @@ The application is configured for deployment on Hetzner Cloud and Hatchbox.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Development Environment Setup
+
+This project requires specific tool versions managed by [`asdf`](https://asdf-vm.com/). Please ensure you have `asdf` installed and configured correctly before proceeding.
+
+**Required Tool:**
+
+*   Ruby 3.3.5
+
+**Setup Steps:**
+
+1.  **Install `asdf`:** Follow the [official asdf installation guide](https://asdf-vm.com/guide/getting-started.html#_1-install-dependencies).
+2.  **Add Ruby Plugin:** `asdf plugin-add ruby https://github.com/asdf-vm/asdf-ruby.git`
+3.  **Install Required Ruby Version:** Navigate to the project directory and run `asdf install`. This will read the `.tool-versions` file and install Ruby 3.3.5 if you don't have it.
+4.  **Verify:** In the project directory, run `ruby -v`. It should output `ruby 3.3.5...`.
+
+**IMPORTANT: Remove Conflicting Version Managers**
+
+To avoid conflicts, please ensure you **remove or disable configurations for other Ruby version managers like RVM or rbenv** from your shell startup files (e.g., `~/.bashrc`, `~/.bash_profile`, `~/.zshrc`). Comment out or delete lines related to `rvm` or `rbenv` initialization. After editing, restart your terminal or source the configuration file (e.g., `source ~/.zshrc`).

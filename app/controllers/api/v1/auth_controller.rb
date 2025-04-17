@@ -2,7 +2,6 @@ module Api
   module V1
     class AuthController < Api::BaseController
       include JwtAuthenticatable
-      skip_before_action :authenticate_user_from_token!, only: [:create, :login_from_session]
       skip_before_action :authenticate_jwt!, only: [:create, :login_from_session]
       
       def create

@@ -76,4 +76,15 @@ class Call < ApplicationRecord
       where('created_at >= ?', start_date)
     end
   }
+
+  # Add twilio_sid to attributes for JSON
+  def as_json(options = {})
+    super(options.merge(
+      methods: [:formatted_duration, :formatted_cost],
+      except: [:failure_reason, :user_id, :payment_status]
+    )).merge(
+      twilio_sid: twilio_sid,
+      formatted_phone: formatted_phone_number
+    )
+  end
 end

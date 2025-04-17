@@ -200,17 +200,22 @@ export default class extends Controller {
    * Handle call ended
    */
   handleCallEnded() {
+    console.log("Application controller: handleCallEnded event received.")
     this.callInProgressValue = false
     this.callStatusValue = 'ended'
     
     // Broadcast updated state
     this.broadcastState()
+    
+    // Trigger a hide-modal event - this might be used by other modals, keep it general
+    document.dispatchEvent(new CustomEvent('papercup:hide-modal'))
   }
   
   /**
    * Handle call status changed
    */
   handleCallStatusChanged(event) {
+    console.log("Application controller: handleCallStatusChanged event received:", event.detail.status)
     this.callStatusValue = event.detail.status
     
     if (event.detail.status === 'active') {

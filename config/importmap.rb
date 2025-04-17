@@ -6,6 +6,7 @@ pin "@hotwired/stimulus", to: "stimulus.min.js", preload: true
 pin "@hotwired/stimulus-loading", to: "stimulus-loading.js", preload: true
 pin_all_from "app/javascript/controllers", under: "controllers"
 pin_all_from "app/javascript/services", under: "services"
+pin_all_from "app/javascript/data", under: "data"
 pin "@rails/actioncable", to: "actioncable.esm.js"
 pin_all_from "app/javascript/channels", under: "channels"
 pin "chartkick", to: "chartkick.js"
@@ -19,3 +20,6 @@ pin "@activeadmin/activeadmin", to: "https://ga.jspm.io/npm:@activeadmin/activea
 pin "@popperjs/core", to: "https://ga.jspm.io/npm:@popperjs/core@2.11.8/lib/index.js"
 pin "@rails/ujs", to: "https://ga.jspm.io/npm:@rails/ujs@7.1.2/app/assets/javascripts/rails-ujs.esm.js"
 pin "stripe", to: "https://js.stripe.com/v3/", preload: true
+pin "uuid", to: "https://ga.jspm.io/npm:uuid@9.0.1/dist/esm-browser/index.js"
+pin "chart.js/auto", to: "https://ga.jspm.io/npm:chart.js@4.4.1/auto/auto.js"
+pin "@kurkle/color", to: "https://ga.jspm.io/npm:@kurkle/color@0.3.2/dist/color.esm.js"

@@ -24,9 +24,14 @@
     
     <!-- Stripe.js -->
     <script src="https://js.stripe.com/v3/" defer></script>
+
+    <!-- Add meta tag for authentication state -->
+    <meta name="logged-in" content="<%= user_signed_in? %>" />
+
+    <%= content_for :page_title %>
   </head>
 
-  <body class="bg-background" data-controller="application">
+  <body class="bg-background" data-controller="application" data-credits="<%= current_user&.credit_balance || 0 %>" data-call-status="idle">
     <%= render "shared/header" %>
     
     <main class="container mx-auto px-4 py-4">
@@ -165,5 +170,243 @@
         }
       </script>
     <% end %>
+    
+    <!-- Direct webhook event handler - add this to ensure modal closes -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('Setting up direct call event handlers');
+        
+        // DIRECT FIX: Monitor for active call and force polling using a custom approach
+        function setupCallMonitoring() {
+          // This approach doesn't require accessing Stimulus controller directly
+          const controller = document.getElementById('active-call-controller');
+          
+          if (!controller) {
+            console.error('Could not find active-call-controller element');
+            return;
+          }
+          
+          // Function to start polling based on element attributes
+          function checkAndStartPolling() {
+            const state = controller.getAttribute('data-active-call-state-value');
+            const callId = controller.getAttribute('data-active-call-call-id-value');
+            
+            if (state === 'active' && callId) {
+              console.log('DIRECT FIX: Detected active call with ID:', callId);
+              
+              // Create a direct fetch polling mechanism
+              if (!window.papercupPollingInterval) {
+                console.log('DIRECT FIX: Starting direct polling for call:', callId);
+                
+                window.papercupPollingInterval = setInterval(() => {
+                  console.log('DIRECT FIX: Polling for call status:', callId);
+                  
+                  // Create a fetch request that mimics the original API call
+                  fetch(`/api/calls/${callId}`, {
+                    headers: {
+                      'Accept': 'application/json',
+                      'Content-Type': 'application/json',
+                      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+                    }
+                  })
+                  .then(response => response.json())
+                  .then(data => {
+                    console.log('DIRECT FIX: Poll response:', data);
+                    
+                    // Check if call has ended
+                    if (['completed', 'failed', 'terminated', 'canceled', 'no-answer', 'busy', 'error'].includes(data.status)) {
+                      console.log('DIRECT FIX: Detected call end in poll, status:', data.status);
+                      
+                      // Stop our polling
+                      clearInterval(window.papercupPollingInterval);
+                      window.papercupPollingInterval = null;
+                      
+                      // Force modal to hide
+                      const overlay = document.querySelector('[data-active-call-target="overlay"]');
+                      if (overlay) {
+                        console.log('DIRECT FIX: Hiding overlay');
+                        overlay.classList.remove('opacity-100');
+                        overlay.classList.add('hidden');
+                        
+                        // Trigger the call ended event that the application expects
+                        document.dispatchEvent(new CustomEvent('papercup:call-ended', {
+                          detail: {
+                            callId: callId,
+                            status: data.status
+                          }
+                        }));
+                      }
+                    }
+                  })
+                  .catch(err => {
+                    console.error('DIRECT FIX: Error polling:', err);
+                  });
+                }, 2000);
+              }
+            }
+          }
+          
+          // Setup mutation observer to detect when state changes to 'active'
+          const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+              if (mutation.attributeName === 'data-active-call-state-value') {
+                const newValue = controller.getAttribute('data-active-call-state-value');
+                if (newValue === 'active') {
+                  checkAndStartPolling();
+                } else if (newValue === 'idle' || newValue === 'ended') {
+                  // Stop polling if state changes to idle or ended
+                  if (window.papercupPollingInterval) {
+                    clearInterval(window.papercupPollingInterval);
+                    window.papercupPollingInterval = null;
+                    console.log('DIRECT FIX: Stopped polling due to state change to:', newValue);
+                  }
+                }
+              }
+            });
+          });
+          
+          // Start observing
+          observer.observe(controller, { 
+            attributes: true, 
+            attributeFilter: ['data-active-call-state-value'] 
+          });
+          
+          // Also check immediately in case it's already active
+          checkAndStartPolling();
+        }
+        
+        // Start monitoring after a short delay to ensure DOM is ready
+        setTimeout(setupCallMonitoring, 1000);
+        
+        // Listen for call ended event globally
+        document.addEventListener('papercup:call-ended', function(event) {
+          console.log('📞 DIRECT HANDLER: Call ended event received', event.detail);
+          
+          // Force modal to hide
+          const overlay = document.querySelector('[data-active-call-target="overlay"]');
+          if (overlay) {
+            console.log('📞 DIRECT HANDLER: Found overlay, hiding it directly');
+            overlay.classList.remove('opacity-100');
+            overlay.classList.add('hidden');
+            
+            // Also dispatch hide-modal event to ensure all modals close
+            document.dispatchEvent(new CustomEvent('papercup:hide-modal'));
+          } else {
+            console.log('📞 DIRECT HANDLER: Could not find overlay element');
+          }
+        });
+        
+        // Also listen for hide-modal events
+        document.addEventListener('papercup:hide-modal', function() {
+          console.log('📞 DIRECT HANDLER: Hide modal event received');
+        });
+        
+        // Debug utility - make available globally for console debugging
+        window.debugStimulusControllers = function() {
+          const activeCallElements = document.querySelectorAll('[data-controller~="active-call"]');
+          console.log('Active call controller elements:', activeCallElements.length);
+          activeCallElements.forEach((el, i) => {
+            console.log(`Element ${i}:`, el);
+            
+            // Direct attribute access instead of depending on controller instance
+            console.log(`State: ${el.getAttribute('data-active-call-state-value')}, CallId: ${el.getAttribute('data-active-call-call-id-value')}`);
+          });
+          
+          return {
+            count: activeCallElements.length,
+            startDirectPolling: function() {
+              const el = activeCallElements[0];
+              const callId = el.getAttribute('data-active-call-call-id-value');
+              
+              if (!callId) {
+                return "No call ID found";
+              }
+              
+              if (window.papercupPollingInterval) {
+                clearInterval(window.papercupPollingInterval);
+                window.papercupPollingInterval = null;
+              }
+              
+              setupCallMonitoring();
+              return `Started direct polling for call ${callId}`;
+            },
+            // Add a direct check for Twilio status
+            checkTwilioStatus: async function() {
+              const el = activeCallElements[0];
+              const callId = el.getAttribute('data-active-call-call-id-value');
+              
+              if (!callId) {
+                console.error("No call ID found");
+                return "No call ID found";
+              }
+              
+              // First fetch the call to get its Twilio SID
+              try {
+                const callResponse = await fetch(`/api/calls/${callId}`, {
+                  headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+                  }
+                });
+                
+                if (!callResponse.ok) {
+                  console.error("Failed to fetch call data");
+                  return "Failed to fetch call data";
+                }
+                
+                const callData = await callResponse.json();
+                
+                if (!callData.twilio_sid) {
+                  console.error("No Twilio SID found for call");
+                  return "No Twilio SID found for call";
+                }
+                
+                // Now check Twilio status directly
+                const twilioResponse = await fetch(`/api/calls/twilio_status?sid=${callData.twilio_sid}`, {
+                  headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+                  }
+                });
+                
+                if (!twilioResponse.ok) {
+                  console.error("Failed to check Twilio status");
+                  return "Failed to check Twilio status";
+                }
+                
+                const twilioData = await twilioResponse.json();
+                console.log("Twilio status check result:", twilioData);
+                
+                // If Twilio says the call is completed but our UI doesn't know
+                if (['completed', 'failed', 'canceled', 'busy', 'no-answer'].includes(twilioData.status) && 
+                    el.getAttribute('data-active-call-state-value') === 'active') {
+                  
+                  console.log("Twilio reports call is ended, triggering call-ended event");
+                  
+                  // Dispatch call ended event
+                  document.dispatchEvent(new CustomEvent('papercup:call-ended', {
+                    detail: {
+                      callId: callId,
+                      status: twilioData.status,
+                      source: 'manual_twilio_check'
+                    }
+                  }));
+                  
+                  return `Call has ended according to Twilio (${twilioData.status}). UI updated.`;
+                }
+                
+                return `Twilio status: ${twilioData.status}, Call duration: ${twilioData.duration}s`;
+                
+              } catch (error) {
+                console.error("Error checking Twilio status:", error);
+                return `Error: ${error.message}`;
+              }
+            }
+          };
+        };
+      });
+    </script>
   </body>
 </html>

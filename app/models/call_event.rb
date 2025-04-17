@@ -19,7 +19,9 @@ class CallEvent < ApplicationRecord
     'in_progress', 
     'completed', 
     'terminated', 
-    'failed'
+    'failed',
+    'terminate_failed',
+    'billing_failed'
   ]
   
   validates :event_type, inclusion: { in: EVENT_TYPES }, allow_nil: false

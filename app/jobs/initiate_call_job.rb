@@ -126,21 +126,21 @@ class InitiateCallJob < ApplicationJob
     "#{host}/api/calls/webhook.xml?call_id=#{call.id}"
   end
   
-  # Generate status callback URL - manually construct the URL to avoid port issues
+  # Generate status callback URL - ensure it uses the public APP_HOST
   def status_callback_url(call)
-    # Get clean host without any port number
+    # Use APP_HOST from environment variables for the public URL
     host = ENV['APP_HOST'].to_s.strip
     Rails.logger.info "Host for status callback: #{host}"
     
-    # Ensure the host doesn't already have https:// prefix
+    # Ensure the host has the correct protocol
     unless host.start_with?('http://') || host.start_with?('https://')
-      host = "https://#{host}"
+      host = "https://#{host}" # Default to https
     end
     
     # Ensure no trailing slash
     host = host.chomp('/')
     
-    # Manually construct the URL
+    # Construct the final URL
     "#{host}/api/calls/status_callback?call_id=#{call.id}"
   end
 end
